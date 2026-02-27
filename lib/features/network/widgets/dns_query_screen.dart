@@ -13,21 +13,21 @@ class DnsQueryScreen extends StatefulWidget {
 }
 
 class _DnsQueryScreen extends State<DnsQueryScreen> {
-  // 输入框文本控制器
+  /// 输入框文本控制器。
   TextEditingController inputController = TextEditingController();
-  // 输出框文本控制器
+  /// 输出框文本控制器（文本模式）。
   TextEditingController outputController = TextEditingController();
-  // 是否启用 自定义DNS服务器
+  /// 是否启用自定义 DNS 服务器。
   bool isEnableDns = false;
-  // 是否文本模式
+  /// 是否输出为纯文本模式。
   bool isRawMode = false;
-  // 自定义DNS服务器文本控制器
+  /// 自定义 DNS 地址输入控制器。
   TextEditingController dnsController = TextEditingController();
-  // 当前选中的DNS Server Key, 默认使用CloudFlare好了
+  /// 当前选中的内置 DNS 名称。
   String _selectedDnsKey = DnsUtils.dnsServers.keys.first;
-  // 存放查询结果
+  /// 表格模式下的行数据。
   List<DataRow> _resultRows = [];
-  // 用于管理自定义 DNS 实例生命周期
+  /// 自定义 DNS 客户端实例。
   DnsOverHttps? _customDns;
 
   @override
@@ -255,6 +255,7 @@ class _DnsQueryScreen extends State<DnsQueryScreen> {
     );
   }
 
+  /// 构建表格模式输出组件。
   Widget _buildTableOutput() {
     if (_resultRows.isEmpty) {
       return const Center(
@@ -287,55 +288,52 @@ class _DnsQueryScreen extends State<DnsQueryScreen> {
     );
   }
 
-  ///=== 私有方法 ===///
-  // === 查询逻辑 ===
+  /// 执行 DNS 查询并刷新结果。
   Future<void> _dnsSearch() async {
-    if (inputController.text.isEmpty) {
+    final domain = inputController.text.trim();
+    if (domain.isEmpty) {
       showToast("不知道你要查询什么喵", context);
       return;
     }
-    if (isEnableDns && dnsController.text.isEmpty) {
+    if (isEnableDns && dnsController.text.trim().isEmpty) {
       showToast("请输入自定义DNS服务器喵", context);
       return;
     }
 
-    DnsResult? result;
-    DnsOverHttps? dnsToUse;
-
     try {
+      late final DnsOverHttps dnsToUse;
       if (!isEnableDns) {
-        dnsToUse = DnsUtils.dnsServers[_selectedDnsKey];
-        if (dnsToUse == null) {
+        final defaultDns = DnsUtils.dnsServers[_selectedDnsKey];
+        if (defaultDns == null) {
           showToast("DNS服务器不存在喵", context);
           return;
         }
+        dnsToUse = defaultDns;
       } else {
-        // 关闭旧的自定义 DNS
         _customDns?.close();
         _customDns = DnsOverHttps(dnsController.text.trim());
-        dnsToUse = _customDns;
+        dnsToUse = _customDns!;
       }
 
-      result = await DnsUtils.queryAllWith(dnsToUse!, inputController.text);
-    } catch (e) {
+      final result = await DnsUtils.queryAllWith(dnsToUse, domain);
       if (!mounted) return;
-      showToast('查询失败: ${e.toString()}', context);
-      return;
-    }
 
-    // ✅ 统一更新状态
-    if (mounted) {
       setState(() {
         if (isRawMode) {
           outputController.text = result.toString();
+          _resultRows = [];
         } else {
-          _resultRows = _buildResultRows(result!);
+          _resultRows = _buildResultRows(result);
+          outputController.clear();
         }
       });
+    } catch (e) {
+      if (!mounted) return;
+      showToast('查询失败: ${e.toString()}', context);
     }
   }
 
-  // === 构建表格行 ===
+  /// 将 [DnsResult] 转换为表格行集合。
   List<DataRow> _buildResultRows(DnsResult result) {
     final rows = <DataRow>[];
 
@@ -397,13 +395,18 @@ class _DnsQueryScreen extends State<DnsQueryScreen> {
 
   /// 清理输入输出框
   void _clear() {
-    if (inputController.text.isEmpty) {
+    if (inputController.text.isEmpty &&
+        dnsController.text.isEmpty &&
+        outputController.text.isEmpty &&
+        _resultRows.isEmpty) {
       showToast("无内容可清空喵", context);
       return;
     }
     inputController.clear();
     dnsController.clear();
     outputController.clear();
+    _resultRows = [];
+    setState(() {});
     showToast("已清空喵", context);
   }
 }

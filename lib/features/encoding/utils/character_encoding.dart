@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'dart:core';
 import 'package:charset/charset.dart';
 
+/// 字符编码辅助工具。
 class CharacterEncoding {
-  final List<String> characterEncodingList = [
+  /// 支持的字符编码名称列表（按常用度排序）。
+  static const List<String> characterEncodingList = [
     // ===== 现代主流 =====
     'utf-8',
     'utf8',
@@ -101,7 +103,9 @@ class CharacterEncoding {
     'cp1163',
   ];
 
-  /// 转换为UTF-8 字节
+  /// 将 [bytes] 从指定 [encodingName] 解码后再编码为 UTF-8。
+  ///
+  /// 当编码名不受支持时抛出 [Exception]。
   static List<int> convertToUtf8(List<int> bytes, String encodingName) {
     final charset = Charset.getByName(encodingName);
 

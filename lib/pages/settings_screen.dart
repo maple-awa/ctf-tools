@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
+/// 设置页占位组件。
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// 显示提示弹窗（Toast）
+/// 显示统一样式的提示消息。
+///
+/// [message] 为提示内容，[context] 用于定位当前页面的 `ScaffoldMessenger`。
 void showToast(String message, BuildContext context) {
-
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(message),

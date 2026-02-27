@@ -1,3 +1,4 @@
+/// 支持的 Base 编码类型列表。
 List<String> get getBaseEncodingList => [
   "Base2",
   "Base8",

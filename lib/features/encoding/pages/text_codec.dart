@@ -13,14 +13,21 @@ class TextEncodingScreen extends StatefulWidget {
 }
 
 class _TextEncodingScreen extends State<TextEncodingScreen> {
-  // 当前选中的字符编码
+  /// 当前选中的文本编解码类型。
   String selectedCharacterEncoding = getTextCoderList[0];
-  // 输入框文本控制器
+  /// 输入框控制器。
   TextEditingController inputController = TextEditingController();
-  // 交换文本
+  /// 交换输入输出时的临时变量。
   String swapTextTemp = "";
-  // 输出框文本控制器
+  /// 输出框控制器。
   TextEditingController outputController = TextEditingController();
+
+  @override
+  void dispose() {
+    inputController.dispose();
+    outputController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -139,9 +146,7 @@ class _TextEncodingScreen extends State<TextEncodingScreen> {
                   iconColor: Colors.white,
                   text: "编码",
                   textColor: Colors.white,
-                  onPressed: () => {
-                    _encode()
-                  },
+                  onPressed: _encode,
                 ),
                 SizedBox(width: 20),
                 MElevatedButton(
@@ -149,9 +154,7 @@ class _TextEncodingScreen extends State<TextEncodingScreen> {
                   iconColor: Colors.white,
                   text: "解码",
                   textColor: Colors.white,
-                  onPressed: () => {
-                    _decode()
-                  },
+                  onPressed: _decode,
                 ),
                 SizedBox(width: 20),
                 MElevatedButton(
@@ -245,20 +248,30 @@ class _TextEncodingScreen extends State<TextEncodingScreen> {
   }
 
   ///=== 私有方法 ===///
-  /// 编码
+  /// 根据当前编码类型对输入文本执行编码。
   void _encode() {
-    outputController.text = TextCoderFactory.encode(
-      selectedCharacterEncoding,
-      inputController.text,
-    );
+    try {
+      outputController.text = TextCoderFactory.encode(
+        selectedCharacterEncoding,
+        inputController.text,
+      );
+      setState(() {});
+    } catch (e) {
+      _showToast("编码失败: $e");
+    }
   }
 
-  /// 编码
+  /// 根据当前编码类型对输入文本执行解码。
   void _decode() {
-    outputController.text = TextCoderFactory.decode(
-      selectedCharacterEncoding,
-      inputController.text,
-    );
+    try {
+      outputController.text = TextCoderFactory.decode(
+        selectedCharacterEncoding,
+        inputController.text,
+      );
+      setState(() {});
+    } catch (e) {
+      _showToast("解码失败: $e");
+    }
   }
 
   /// 清理输入输出框

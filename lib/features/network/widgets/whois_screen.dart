@@ -14,12 +14,19 @@ class WhoisScreen extends StatefulWidget {
 }
 
 class _WhoisScreen extends State<WhoisScreen> {
-  // 输入框文本控制器
+  /// 输入框文本控制器。
   TextEditingController inputController = TextEditingController();
-  // 输出框文本控制器
+  /// 输出框文本控制器。
   TextEditingController outputController = TextEditingController();
-  // 是否 RAW 模式
+  /// 是否使用原始 WHOIS 输出模式。
   bool isRawMode = false;
+
+  @override
+  void dispose() {
+    inputController.dispose();
+    outputController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -176,23 +183,24 @@ class _WhoisScreen extends State<WhoisScreen> {
     );
   }
 
-  ///=== 私有方法 ===///
-  /// Whois查询
+  /// 执行 WHOIS 查询并更新输出内容。
   Future<void> _whoisSearch() async {
-    if (inputController.text.isEmpty) {
+    final domain = inputController.text.trim();
+    if (domain.isEmpty) {
       showToast("不知道你要查询什么喵", context);
       return;
     }
     try {
       String result;
       if (isRawMode) {
-        final tmp = await Whois.lookup(inputController.text);
+        final tmp = await Whois.lookup(domain);
         final originalUtf8Bytes = latin1.encode(tmp);
         result = utf8.decode(originalUtf8Bytes, allowMalformed: true);
       } else {
-        result = await WhoisUtil.lookupAndFormatChinese(inputController.text);
+        result = await WhoisUtil.lookupAndFormatChinese(domain);
       }
       outputController.text = result;
+      if (mounted) setState(() {});
     } catch (e) {
       final errorMessage = "查询出错：$e";
       outputController.text = errorMessage;

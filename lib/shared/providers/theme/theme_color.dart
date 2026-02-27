@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
+/// 主题色对（亮色/暗色）定义。
 class ThemeColor {
+  /// 主题名称。
   final String name;
+  /// 亮色模式主色。
   final Color light;
+  /// 暗色模式主色。
   final Color dark;
 
   const ThemeColor({
@@ -12,7 +16,8 @@ class ThemeColor {
 });
 }
 
-class AppTheme{
+/// 应用主题构建器。
+class AppTheme {
   static const List<ThemeColor> colors = [
     ThemeColor(name: 'Blue',    light: Color(0xFFA7C7E7), dark: Color(0xFF6FA8DC)),
     ThemeColor(name: 'Rose',    light: Color(0xFFFFB3B3), dark: Color(0xFFFF8F8F)),
@@ -72,6 +77,9 @@ class AppTheme{
     );
   }
 
+  /// 创建一个暗色模式（Dark Mode）的 ThemeData 主题。
+  ///
+  /// [primary] 为主色调，将应用到 AppBar 与颜色种子方案。
   static ThemeData darkTheme(Color primary) {
     return ThemeData(
       brightness: Brightness.dark,

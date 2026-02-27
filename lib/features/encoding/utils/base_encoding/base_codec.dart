@@ -3,11 +3,16 @@ import 'dart:typed_data';
 
 import 'package:base_x/base_x.dart';
 
+/// 定义 Base 编解码器接口。
 abstract class BaseCodec {
+  /// 将字节序列编码为 Base 文本。
   String encode(List<int> bytes);
+
+  /// 将 Base 文本解码为字节序列。
   List<int> decode(String text);
 }
 
+/// 按名称分发具体 Base 编解码器的工厂类。
 class BaseCodecFactory {
   static final Map<String, BaseCodec> _codecs = {
     "Base2": Base2Codec(),
@@ -21,15 +26,30 @@ class BaseCodecFactory {
     "Base66": Base66Codec(),
   };
 
-  static String encode(String name, List<int> bytes){
-    return _codecs[name]!.encode(bytes);
+  /// 使用指定名称的编码器执行编码。
+  ///
+  /// 当 [name] 未注册时抛出 [ArgumentError]。
+  static String encode(String name, List<int> bytes) {
+    final codec = _codecs[name];
+    if (codec == null) {
+      throw ArgumentError('Unsupported base codec: $name');
+    }
+    return codec.encode(bytes);
   }
 
-  static List<int> decode(String name, String text){
-    return _codecs[name]!.decode(text);
+  /// 使用指定名称的编码器执行解码。
+  ///
+  /// 当 [name] 未注册时抛出 [ArgumentError]。
+  static List<int> decode(String name, String text) {
+    final codec = _codecs[name];
+    if (codec == null) {
+      throw ArgumentError('Unsupported base codec: $name');
+    }
+    return codec.decode(text);
   }
 }
 
+/// Base2（二进制）编解码器。
 class Base2Codec implements BaseCodec {
   @override
   String encode(List<int> bytes) {
@@ -41,19 +61,24 @@ class Base2Codec implements BaseCodec {
   List<int> decode(String text) {
     text = text.replaceAll(RegExp(r'\s+'), '');
     if (text.isEmpty) return [];
-    
-    List<int> bytes = [];
+
+    if (!RegExp(r'^[01]+$').hasMatch(text)) {
+      throw const FormatException('Base2 text contains non-binary characters.');
+    }
+    if (text.length % 8 != 0) {
+      throw const FormatException('Base2 text length must be a multiple of 8.');
+    }
+
+    final bytes = <int>[];
     for (int i = 0; i < text.length; i += 8) {
-      int end = (i + 8 < text.length) ? i + 8 : text.length;
-      String chunk = text.substring(i, end);
-      if (chunk.isNotEmpty) {
-        bytes.add(int.parse(chunk.padRight(8, '0'), radix: 2));
-      }
+      final chunk = text.substring(i, i + 8);
+      bytes.add(int.parse(chunk, radix: 2));
     }
     return bytes;
   }
 }
 
+/// 基于 BaseX 的 Base8（八进制字符表）编解码器。
 class Base8Codec implements BaseCodec {
   static final _codec = BaseXCodec(
     '01234567',
@@ -66,6 +91,7 @@ class Base8Codec implements BaseCodec {
   List<int> decode(String text) => _codec.decode(text);
 }
 
+/// Base16（十六进制）编解码器。
 class Base16Codec implements BaseCodec {
   @override
   String encode(List<int> bytes) {
@@ -77,19 +103,21 @@ class Base16Codec implements BaseCodec {
   List<int> decode(String text) {
     text = text.toLowerCase().replaceAll(RegExp(r'[^0-9a-f]'), '');
     if (text.isEmpty) return [];
-    
-    List<int> bytes = [];
+
+    if (text.length.isOdd) {
+      throw const FormatException('Base16 text length must be even.');
+    }
+
+    final bytes = <int>[];
     for (int i = 0; i < text.length; i += 2) {
-      int end = (i + 2 < text.length) ? i + 2 : text.length;
-      String chunk = text.substring(i, end);
-      if (chunk.isNotEmpty) {
-        bytes.add(int.parse(chunk, radix: 16));
-      }
+      final chunk = text.substring(i, i + 2);
+      bytes.add(int.parse(chunk, radix: 16));
     }
     return bytes;
   }
 }
 
+/// Base32（RFC 4648）编解码器。
 class Base32Codec implements BaseCodec {
   static const String _alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
@@ -170,6 +198,7 @@ class Base32Codec implements BaseCodec {
   }
 }
 
+/// 基于 BaseX 的 Base36 编解码器。
 class Base36Codec implements BaseCodec {
   static final _codec = BaseXCodec(
     '0123456789abcdefghijklmnopqrstuvwxyz',
@@ -182,6 +211,7 @@ class Base36Codec implements BaseCodec {
   List<int> decode(String text) => _codec.decode(text);
 }
 
+/// 基于 BaseX 的 Base58 编解码器。
 class Base58Codec implements BaseCodec {
   static final _codec = BaseXCodec(
     '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz',
@@ -194,6 +224,7 @@ class Base58Codec implements BaseCodec {
   List<int> decode(String text) => _codec.decode(text);
 }
 
+/// 基于 BaseX 的 Base62 编解码器。
 class Base62Codec implements BaseCodec {
   static final _codec = BaseXCodec(
     '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -206,7 +237,8 @@ class Base62Codec implements BaseCodec {
   List<int> decode(String text) => _codec.decode(text);
 }
 
-class Base64Codec implements BaseCodec{
+/// 基于 `dart:convert` 的 Base64 编解码器。
+class Base64Codec implements BaseCodec {
   @override
   List<int> decode(String text) {
     return base64.decode(text);
@@ -218,7 +250,8 @@ class Base64Codec implements BaseCodec{
   }
 }
 
-class Base66Codec implements BaseCodec{
+/// 基于 BaseX 的 Base66 自定义字母表编解码器。
+class Base66Codec implements BaseCodec {
   static final _codec = BaseXCodec(
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.!~',
   );

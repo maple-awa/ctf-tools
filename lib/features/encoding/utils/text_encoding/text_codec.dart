@@ -1,26 +1,48 @@
+import 'dart:convert';
+
+/// 文本编解码器统一接口。
 abstract class TextCodec {
+  /// 将原始文本转换为目标编码文本。
   String encode(String text);
+
+  /// 将目标编码文本还原为原始文本。
   String decode(String text);
 }
 
+/// 文本编解码器工厂，按名称分发具体实现。
 class TextCoderFactory {
-  static final Map<String,TextCodec> _codecs = {
-    "Unicode" : UnicodeCoder(),
-    "URL" : UrlCoder(),
-    "HTML" : HtmlCoder(),
-    "Quoted Printable" : QuotedPrintableCoder(),
-    "Morse Code" : MorseCodeCoder()
+  static final Map<String, TextCodec> _codecs = {
+    "Unicode": UnicodeCoder(),
+    "URL": UrlCoder(),
+    "HTML": HtmlCoder(),
+    "Quoted Printable": QuotedPrintableCoder(),
+    "Morse Code": MorseCodeCoder()
   };
 
-  static String encode(String name, String text){
-    return _codecs[name]!.encode(text);
+  /// 使用指定编码器执行编码。
+  ///
+  /// 当 [name] 未注册时抛出 [ArgumentError]。
+  static String encode(String name, String text) {
+    final codec = _codecs[name];
+    if (codec == null) {
+      throw ArgumentError('Unsupported text codec: $name');
+    }
+    return codec.encode(text);
   }
 
-  static String decode(String name, String text){
-    return _codecs[name]!.decode(text);
+  /// 使用指定编码器执行解码。
+  ///
+  /// 当 [name] 未注册时抛出 [ArgumentError]。
+  static String decode(String name, String text) {
+    final codec = _codecs[name];
+    if (codec == null) {
+      throw ArgumentError('Unsupported text codec: $name');
+    }
+    return codec.decode(text);
   }
 }
 
+/// Unicode 转义（`\uXXXX`）编解码器。
 class UnicodeCoder implements TextCodec {
   @override
   String decode(String text) {
@@ -50,10 +72,11 @@ class UnicodeCoder implements TextCodec {
   }
 }
 
-class UrlCoder implements TextCodec{
+/// URL 组件编解码器。
+class UrlCoder implements TextCodec {
   @override
   String decode(String text) {
-    if(text.isEmpty) return "";
+    if (text.isEmpty) return "";
     return Uri.decodeComponent(text);
   }
 
@@ -64,7 +87,8 @@ class UrlCoder implements TextCodec{
   }
 }
 
-class HtmlCoder implements TextCodec{
+/// 常见 HTML 实体编解码器。
+class HtmlCoder implements TextCodec {
   @override
   String decode(String text) {
     if (text.isEmpty) return "";
@@ -88,87 +112,84 @@ class HtmlCoder implements TextCodec{
   }
 }
 
+/// Quoted-Printable 编解码器（以 UTF-8 作为字节源）。
 class QuotedPrintableCoder implements TextCodec {
   @override
   String decode(String text) {
     if (text.isEmpty) return "";
 
-    StringBuffer result = StringBuffer();
+    final bytes = <int>[];
     int i = 0;
 
     while (i < text.length) {
-      // 匹配 =XX 格式的编码字符（XX为16进制）
-      if (text[i] == '=' && i + 2 < text.length) {
-        String hex = text.substring(i + 1, i + 3);
-        try {
-          // 将16进制转为字符
-          int code = int.parse(hex, radix: 16);
-          result.writeCharCode(code);
-          i += 3;
-        } catch (e) {
-          // 解析失败则保留原字符
-          result.write(text[i]);
+      // 软换行（=CRLF 或 =LF）直接忽略。
+      if (text[i] == '=' &&
+          i + 1 < text.length &&
+          (text[i + 1] == '\r' || text[i + 1] == '\n')) {
+        i += 2;
+        if (i < text.length && text[i - 1] == '\r' && text[i] == '\n') {
           i++;
         }
+        continue;
       }
-      // 处理软换行（=+换行），直接跳过
-      else if (text[i] == '=' && i + 1 < text.length && (text[i+1] == '\r' || text[i+1] == '\n')) {
-        i += 2;
-        // 兼容 \r\n 换行
-        if (i < text.length && text[i] == '\n') i++;
+
+      // =XX 十六进制字节。
+      if (text[i] == '=' && i + 2 < text.length) {
+        final hex = text.substring(i + 1, i + 3);
+        if (RegExp(r'^[0-9A-Fa-f]{2}$').hasMatch(hex)) {
+          bytes.add(int.parse(hex, radix: 16));
+          i += 3;
+          continue;
+        }
       }
-      // 普通字符直接保留
-      else {
-        result.write(text[i]);
-        i++;
-      }
+
+      // 普通字符原样写入单字节。
+      bytes.add(text.codeUnitAt(i));
+      i++;
     }
 
-    return result.toString();
+    return utf8.decode(bytes, allowMalformed: true);
   }
 
   @override
   String encode(String text) {
     if (text.isEmpty) return "";
 
-    StringBuffer result = StringBuffer();
-    int lineLength = 0; // 控制每行不超过76个字符（QP标准）
+    final bytes = utf8.encode(text);
+    final result = StringBuffer();
+    int lineLength = 0;
 
-    for (int codeUnit in text.runes) {
-      // ASCII可打印字符（33-60, 62-126）直接保留
-      if ((codeUnit >= 33 && codeUnit <= 60) || (codeUnit >= 62 && codeUnit <= 126)) {
-        result.writeCharCode(codeUnit);
-        lineLength++;
-      }
-      // 空格和等号需要特殊编码
-      else if (codeUnit == 32) { // 空格
-        result.write('=20');
-        lineLength += 3;
-      } else if (codeUnit == 61) { // 等号
-        result.write('=3D');
-        lineLength += 3;
-      }
-      // 其他字符转为 =XX 格式
-      else {
-        String hex = codeUnit.toRadixString(16).toUpperCase().padLeft(2, '0');
-        result.write('=$hex');
-        lineLength += 3;
+    for (final value in bytes) {
+      final bool isPrintable = (value >= 33 && value <= 60) || (value >= 62 && value <= 126);
+      final String token;
+
+      if (isPrintable) {
+        token = String.fromCharCode(value);
+      } else if (value == 32) {
+        token = '=20';
+      } else if (value == 61) {
+        token = '=3D';
+      } else {
+        token = '=${value.toRadixString(16).toUpperCase().padLeft(2, '0')}';
       }
 
-      // 每行超过76个字符时添加软换行（=+换行）
-      if (lineLength >= 76) {
+      // 写入前预判长度，超出则先换行，避免 token 被截断。
+      if (lineLength + token.length > 76) {
         result.write('=\r\n');
         lineLength = 0;
       }
+      result.write(token);
+      lineLength += token.length;
     }
 
     return result.toString();
   }
 }
 
+/// 国际摩尔斯电码编解码器。
 class MorseCodeCoder implements TextCodec {
-  // 摩尔斯电码映射表（标准国际摩尔斯码）
-  final Map<String, String> _morseMap = {
+  /// 标准摩尔斯映射表。
+  static const Map<String, String> _morseMap = {
     'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.',
     'F': '..-.', 'G': '--.', 'H': '....', 'I': '..', 'J': '.---',
     'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---',
@@ -180,41 +201,32 @@ class MorseCodeCoder implements TextCodec {
     ',': '--..--', '?': '..--..', '!': '-.-.--', '/': '-..-.',
     '(': '-.--.', ')': '-.--.-', '&': '.-...', ':': '---...',
     ';': '-.-.-.', '=': '-...-', '+': '.-.-.', '-': '-....-',
-    '_': '..--.-', '"': '.-..-.', '\$': '...-..-', '@': '.--.-.',
+    '_': '..--.-', '"': '.-..-.', r'$': '...-..-', '@': '.--.-.',
     ' ': '/'
   };
 
-  // 反向映射表（用于解码）
-  late final Map<String, String> _reverseMorseMap;
-
-  MorseCodeCoder() {
-    // 初始化反向映射表
-    _reverseMorseMap = {
-      for (var entry in _morseMap.entries) entry.value: entry.key
-    };
-  }
+  /// 反向映射表，用于解码。
+  static final Map<String, String> _reverseMorseMap = {
+    for (final entry in _morseMap.entries) entry.value: entry.key
+  };
 
   @override
   String decode(String text) {
     if (text.isEmpty) return "";
 
-    StringBuffer result = StringBuffer();
-    // 按空格分割字符，按 / 分割单词
-    List<String> words = text.split('/');
+    final result = StringBuffer();
+    final words = text.split('/');
 
-    for (String word in words) {
-      List<String> chars = word.trim().split(' ');
-      for (String char in chars) {
+    for (final word in words) {
+      final chars = word.trim().split(RegExp(r'\s+'));
+      for (final char in chars) {
         if (char.isNotEmpty) {
-          // 查找对应字符，找不到则保留原码
           result.write(_reverseMorseMap[char] ?? char);
         }
       }
-      // 单词之间添加空格
       result.write(' ');
     }
 
-    // 去除末尾多余的空格
     return result.toString().trim();
   }
 
@@ -222,25 +234,14 @@ class MorseCodeCoder implements TextCodec {
   String encode(String text) {
     if (text.isEmpty) return "";
 
-    StringBuffer result = StringBuffer();
-    // 转为大写（摩尔斯码不区分大小写）
-    String upperText = text.toUpperCase();
+    final upperText = text.toUpperCase();
+    final tokens = <String>[];
 
     for (int i = 0; i < upperText.length; i++) {
-      String char = upperText[i];
-      // 查找摩尔斯码，找不到则保留原字符
-      String morse = _morseMap[char] ?? char;
-      result.write(morse);
-
-      // 字符之间加空格，最后一个字符不加
-      if (i < upperText.length - 1) {
-        // 空格用 / 表示，不需要再加空格
-        if (char != ' ') {
-          result.write(' ');
-        }
-      }
+      final char = upperText[i];
+      tokens.add(_morseMap[char] ?? char);
     }
 
-    return result.toString();
+    return tokens.join(' ').replaceAll(' / ', '/');
   }
 }

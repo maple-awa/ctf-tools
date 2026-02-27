@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+/// 左侧导航栏组件。
 class Sidebar extends StatefulWidget {
   const Sidebar({super.key});
 
@@ -12,7 +13,10 @@ class Sidebar extends StatefulWidget {
 }
 
 class _SidebarState extends State<Sidebar> {
+  /// 当前展开的一级菜单路由。
   String? expandedMenu;
+
+  /// 应用版本号（如 `1.0.0+1`）。
   String? _version;
 
   @override
@@ -21,6 +25,7 @@ class _SidebarState extends State<Sidebar> {
     _loadAppVersion();
   }
 
+  /// 从平台读取应用版本信息并写入状态。
   Future<void> _loadAppVersion() async {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
@@ -30,7 +35,7 @@ class _SidebarState extends State<Sidebar> {
           _version = versionString;
         });
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         setState(() {
           _version = 'Unknown';
@@ -44,7 +49,7 @@ class _SidebarState extends State<Sidebar> {
     final String location = GoRouterState.of(context).uri.path;
 
     // 自动展开当前路由的父菜单
-    for (var item in navItems) {
+    for (final item in navItems) {
       if (_isTopLevel(item.route) && location.startsWith(item.route)) {
         expandedMenu ??= item.route;
       }
@@ -72,31 +77,45 @@ class _SidebarState extends State<Sidebar> {
     );
   }
 
-  // 顶栏
+  /// 构建顶部 Logo 区域。
   Widget _topLogo() {
-    return Container(
-      height: 80,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      alignment: Alignment.centerLeft,
-      child: Row(
-        children: const [
-          Icon(Icons.terminal, color: Color(0xFF2B6CDE), size: 28),
-          SizedBox(width: 12),
-          Text(
-            "CTF TOOLBOX",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2B6CDE),
-            ),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, (1 - value) * -6),
+            child: child,
           ),
-        ],
+        );
+      },
+      child: Container(
+        height: 80,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        alignment: Alignment.centerLeft,
+        child: const Row(
+          children: [
+            Icon(Icons.terminal, color: Color(0xFF2B6CDE), size: 28),
+            SizedBox(width: 12),
+            Text(
+              "CTF TOOLBOX",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2B6CDE),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  // 底栏
-  Widget _buildFooter()  {
+  /// 构建底部版本信息卡片。
+  Widget _buildFooter() {
     return SizedBox(
       width: double.infinity,
       child: Card(
@@ -104,22 +123,21 @@ class _SidebarState extends State<Sidebar> {
         elevation: 8,
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: Column(
-            children: [
-              Text("Version ${_version ?? '...'}", style: const TextStyle(color: Color(0xFF505364))),
-            ],
+          child: Text(
+            "Version ${_version ?? '...'}",
+            style: const TextStyle(color: Color(0xFF505364)),
           ),
         ),
       ),
     );
   }
 
-  // 是顶级菜单
+  /// 判断是否为顶级路由（形如 `/xxx`）。
   bool _isTopLevel(String route) {
     return route.split("/").length == 2;
   }
 
-  // 一级菜单 + 展开逻辑
+  /// 构建一级菜单项及其展开逻辑。
   Widget _buildTopLevel(BuildContext context, NavItem item, String location) {
     final bool isExpanded = expandedMenu == item.route;
     final bool isActive = item.route == "/"
@@ -149,23 +167,33 @@ class _SidebarState extends State<Sidebar> {
           },
         ),
 
-        // 二级菜单
-        if (isExpanded)
-          ...navItems
-              .where((sub) => sub.route.startsWith("${item.route}/"))
-              .map(
-                (sub) => _subMenuCard(
-                  icon: sub.icon,
-                  title: sub.name,
-                  selected: location == sub.route,
-                  onTap: () => context.go(sub.route),
-                ),
-              ),
+        ClipRect(
+          child: AnimatedSize(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: isExpanded
+                ? Column(
+                    children: navItems
+                        .where((sub) => sub.route.startsWith("${item.route}/"))
+                        .map(
+                          (sub) => _subMenuCard(
+                            icon: sub.icon,
+                            title: sub.name,
+                            selected: location == sub.route,
+                            onTap: () => context.go(sub.route),
+                          ),
+                        )
+                        .toList(),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ),
       ],
     );
   }
 
-  // 一级卡片
+  /// 构建一级菜单卡片。
   Widget _menuCard({
     required IconData icon,
     required String title,
@@ -177,21 +205,30 @@ class _SidebarState extends State<Sidebar> {
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 140),
+        curve: Curves.easeOut,
         width: double.infinity,
         margin: const EdgeInsets.symmetric(vertical: 6),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
           color: selected ? const Color(0xFF0F1B31) : const Color(0xFF0D121C),
+          border: Border.all(
+            color: selected ? const Color(0xFF274C8E) : const Color(0x00000000),
+          ),
         ),
         child: Row(
           children: [
-            Icon(
-              icon,
-              color: selected
-                  ? const Color(0xFF2B64CC)
-                  : const Color(0xFF646C7A),
+            AnimatedScale(
+              scale: selected ? 1.04 : 1,
+              duration: const Duration(milliseconds: 140),
+              child: Icon(
+                icon,
+                color: selected
+                    ? const Color(0xFF2B64CC)
+                    : const Color(0xFF646C7A),
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -224,7 +261,7 @@ class _SidebarState extends State<Sidebar> {
     );
   }
 
-  // 二级卡片
+  /// 构建二级菜单卡片。
   Widget _subMenuCard({
     required IconData icon,
     required String title,
@@ -234,7 +271,9 @@ class _SidebarState extends State<Sidebar> {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 140),
+        curve: Curves.easeOut,
         margin: const EdgeInsets.only(left: 20, top: 4, bottom: 4),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
@@ -243,12 +282,16 @@ class _SidebarState extends State<Sidebar> {
         ),
         child: Row(
           children: [
-            Icon(
-              icon,
-              size: 18,
-              color: selected
-                  ? const Color(0xFF2453AC)
-                  : const Color(0xFF7D8597),
+            AnimatedScale(
+              scale: selected ? 1.05 : 1,
+              duration: const Duration(milliseconds: 140),
+              child: Icon(
+                icon,
+                size: 18,
+                color: selected
+                    ? const Color(0xFF2453AC)
+                    : const Color(0xFF7D8597),
+              ),
             ),
             const SizedBox(width: 10),
             Text(

@@ -16,18 +16,25 @@ class BaseCodecScreen extends StatefulWidget {
 }
 
 class _BaseCodecScreen extends State<BaseCodecScreen> {
-  // 当前选中的字符编码
+  /// 当前选中的字符编码。
   String selectedCharacterEncoding =
-      CharacterEncoding().characterEncodingList[0];
-  // 当前选中的Base编码
+      CharacterEncoding.characterEncodingList[0];
+  /// 当前选中的 Base 编码类型。
   String baseInitialValue = getBaseEncodingList[7];
 
-  // 输入框文本控制器
+  /// 输入框控制器。
   TextEditingController inputController = TextEditingController();
-  // 交换文本
+  /// 交换输入输出时的临时变量。
   String swapTextTemp = "";
-  // 输出框文本控制器
+  /// 输出框控制器。
   TextEditingController outputController = TextEditingController();
+
+  @override
+  void dispose() {
+    inputController.dispose();
+    outputController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +66,7 @@ class _BaseCodecScreen extends State<BaseCodecScreen> {
                 const SizedBox(width: 6),
                 MDropdownMenu(
                   initialValue: selectedCharacterEncoding,
-                  items: CharacterEncoding().characterEncodingList,
+                  items: CharacterEncoding.characterEncodingList,
                   onChanged: (value) {
                     setState(() {
                       selectedCharacterEncoding = value;
@@ -164,7 +171,7 @@ class _BaseCodecScreen extends State<BaseCodecScreen> {
                   iconColor: Colors.white,
                   text: "编码",
                   textColor: Colors.white,
-                  onPressed: () => {_baseEncoding()},
+                  onPressed: _baseEncoding,
                 ),
                 SizedBox(width: 20),
                 MElevatedButton(
@@ -172,7 +179,7 @@ class _BaseCodecScreen extends State<BaseCodecScreen> {
                   iconColor: Colors.white,
                   text: "解码",
                   textColor: Colors.white,
-                  onPressed: () => {_baseDecoding()},
+                  onPressed: _baseDecoding,
                 ),
                 SizedBox(width: 20),
                 MElevatedButton(
@@ -266,36 +273,36 @@ class _BaseCodecScreen extends State<BaseCodecScreen> {
   }
 
   ///=== 私有方法 ===///
-  /// Base编码
+  /// 将输入文本按 UTF-8 转字节后执行 Base 编码。
   void _baseEncoding() {
-    setState(() {
-      // 先转 UTF-8 bytes
+    try {
       final utf8Bytes = utf8.encode(inputController.text);
-
-      // 再 Base 编码
       outputController.text = BaseCodecFactory.encode(
         baseInitialValue,
         utf8Bytes,
       );
-    });
+      setState(() {});
+    } catch (e) {
+      showToast("编码失败: $e", context);
+    }
   }
 
-  /// Base解码
+  /// 将 Base 文本解码为字节，再按选定字符集转换并显示。
   void _baseDecoding() {
-    setState(() {
-      // Base 解码成字节
+    try {
       final decodedBytes = BaseCodecFactory.decode(
         baseInitialValue,
         inputController.text,
       );
-      // 转成 UTF-8
       final utf8Bytes = CharacterEncoding.convertToUtf8(
         decodedBytes,
         selectedCharacterEncoding,
       );
-      // 转成字符串显示
-      outputController.text = utf8.decode(utf8Bytes);
-    });
+      outputController.text = utf8.decode(utf8Bytes, allowMalformed: true);
+      setState(() {});
+    } catch (e) {
+      showToast("解码失败: $e", context);
+    }
   }
 
   /// 清理输入输出框

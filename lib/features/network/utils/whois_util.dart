@@ -1,20 +1,36 @@
 import 'package:whois/whois.dart';
 
+/// WHOIS 结果模型及格式化工具。
 class WhoisUtil {
+  /// 域名。
   final String domainName;
+  /// 注册局域名 ID。
   final String? registryDomainId;
+  /// 注册商 WHOIS 服务器。
   final String? registrarWhoisServer;
+  /// 注册商官网地址。
   final String? registrarUrl;
+  /// 最近更新时间。
   final DateTime? updatedDate;
+  /// 注册时间。
   final DateTime? creationDate;
+  /// 到期时间。
   final DateTime? registryExpiryDate;
+  /// 注册商名称。
   final String? registrar;
+  /// 注册商 IANA ID。
   final String? registrarIanaId;
+  /// 注册商滥用邮箱。
   final String? registrarAbuseContactEmail;
+  /// 注册商滥用电话。
   final String? registrarAbuseContactPhone;
+  /// 域名状态列表。
   final List<String> domainStatuses;
+  /// Name Server 列表。
   final List<String> nameServers;
+  /// DNSSEC 状态。
   final String? dnssec;
+  /// WHOIS 数据库更新时间说明。
   final String? lastUpdateOfWhoisDatabase;
 
   WhoisUtil({
@@ -35,53 +51,20 @@ class WhoisUtil {
     this.lastUpdateOfWhoisDatabase,
   });
 
-  /// 从 WHOIS 原始 Map 构建 WhoisUtil 实例
+  /// 从 `whois` 包输出的原始 Map 构建结构化对象。
   factory WhoisUtil.fromMap(Map<String, dynamic> raw) {
-    // 域名
     final domainName = (raw['Domain Name'] as String?)?.trim() ?? '';
-
-    // 状态
-    List<String> extractList(dynamic value) {
-      if (value == null) return [];
-      if (value is String) return [value.trim()];
-      if (value is List) return value.map((e) => e.toString().trim()).toList();
-      return [];
-    }
-
-    final statuses = extractList(raw['Domain Status']);
-    final nameServers = extractList(raw['Name Server']);
-
-    // 日期解析
-    DateTime? parseIsoDate(String? input) {
-      if (input == null || input.isEmpty) return null;
-      try {
-        return DateTime.parse(input);
-      } catch (_) {
-        return null;
-      }
-    }
-
-    // 尝试从多个位置提取 "Last update of whois database"
-    String? extractLastUpdate(String? rawText) {
-      if (rawText == null) return null;
-      final lines = rawText.split('\n');
-      for (final line in lines) {
-        if (line.contains('Last update of whois database')) {
-          // 移除 >>> <<< : 等符号
-          return line.replaceAll(RegExp(r'[<>\s:]+'), ' ').trim().replaceAll(RegExp(r'\s+'), ' ');
-        }
-      }
-      return null;
-    }
+    final statuses = _extractList(raw['Domain Status']);
+    final nameServers = _extractList(raw['Name Server']);
 
     return WhoisUtil(
       domainName: domainName.toUpperCase(),
       registryDomainId: raw['Registry Domain ID'],
       registrarWhoisServer: raw['Registrar WHOIS Server'],
       registrarUrl: raw['Registrar URL'],
-      updatedDate: parseIsoDate(raw['Updated Date']),
-      creationDate: parseIsoDate(raw['Creation Date']),
-      registryExpiryDate: parseIsoDate(raw['Registry Expiry Date']),
+      updatedDate: _parseIsoDate(raw['Updated Date']),
+      creationDate: _parseIsoDate(raw['Creation Date']),
+      registryExpiryDate: _parseIsoDate(raw['Registry Expiry Date']),
       registrar: raw['Registrar'],
       registrarIanaId: raw['Registrar IANA ID'],
       registrarAbuseContactEmail: raw['Registrar Abuse Contact Email'],
@@ -90,15 +73,48 @@ class WhoisUtil {
       nameServers: nameServers,
       dnssec: raw['DNSSEC'],
       lastUpdateOfWhoisDatabase: raw['>>> Last update of whois database:'] ??
-          extractLastUpdate(raw['_raw'] as String?),
+          _extractLastUpdate(raw['_raw'] as String?),
     );
   }
 
-  /// 查询域名并返回格式化中文信息
+  /// 将原始字段统一转换为字符串列表。
+  static List<String> _extractList(dynamic value) {
+    if (value == null) return const [];
+    if (value is String) return [value.trim()];
+    if (value is List) {
+      return value.map((e) => e.toString().trim()).where((e) => e.isNotEmpty).toList();
+    }
+    return const [];
+  }
+
+  /// 解析 ISO 日期字符串，失败时返回 `null`。
+  static DateTime? _parseIsoDate(dynamic input) {
+    final value = input?.toString().trim();
+    if (value == null || value.isEmpty) return null;
+    try {
+      return DateTime.parse(value);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// 从 WHOIS 原文中提取数据库更新时间行。
+  static String? _extractLastUpdate(String? rawText) {
+    if (rawText == null) return null;
+    final lines = rawText.split('\n');
+    for (final line in lines) {
+      if (line.contains('Last update of whois database')) {
+        return line.replaceAll(RegExp(r'[<>\s:]+'), ' ').trim().replaceAll(RegExp(r'\s+'), ' ');
+      }
+    }
+    return null;
+  }
+
+  /// 查询域名 WHOIS 并返回中文格式化文本。
   static Future<String> lookupAndFormatChinese(String domain) async {
     try {
       final rawResponse = await Whois.lookup(domain);
-      final parsedMap = Whois.formatLookup(rawResponse); // 返回 Map<String, dynamic>
+      final parsedMap = Whois.formatLookup(rawResponse);
       final whois = WhoisUtil.fromMap(parsedMap);
 
       final buffer = StringBuffer();
@@ -159,14 +175,13 @@ class WhoisUtil {
     }
   }
 
-  /// 格式化日期为 YYYY-MM-DD
+  /// 将 [DateTime] 格式化为 `YYYY-MM-DD`。
   static String _formatDate(DateTime dt) {
     return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
   }
 
-  /// 将 EPP 状态码翻译为中文描述
+  /// 将 EPP 状态码翻译为中文描述。
   static String _translateStatus(String fullStatus) {
-    // 提取 # 后的状态码，如 clientTransferProhibited
     final parts = fullStatus.split('#');
     final code = parts.length > 1 ? parts[1].toLowerCase() : fullStatus.toLowerCase();
 

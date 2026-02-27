@@ -2,6 +2,7 @@ import 'package:ctf_tools/features/network/widgets/dns_query_screen.dart';
 import 'package:ctf_tools/features/network/widgets/whois_screen.dart';
 import 'package:flutter/material.dart';
 
+/// 网络信息收集页面，提供 WHOIS 与 DNS 查询标签页。
 class ReconScreen extends StatelessWidget {
   const ReconScreen({super.key});
 

@@ -1,7 +1,9 @@
 import 'package:ctf_tools/shared/widgets/sidebar.dart';
 import 'package:flutter/material.dart';
 
-class MainLayout extends StatelessWidget{
+/// 带侧边栏的主框架布局。
+class MainLayout extends StatelessWidget {
+  /// 页面主体内容。
   final Widget child;
 
   const MainLayout({super.key, required this.child});
@@ -12,8 +14,8 @@ class MainLayout extends StatelessWidget{
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Sidebar(),
-          Expanded(child: child)
+          const Sidebar(),
+          Expanded(child: child),
         ],
       ),
     );
