@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ctf_tools/shared/layout/responsive.dart';
 
 /// 首页（工具导航与快速入口）。
 class HomeScreen extends StatefulWidget {
@@ -12,51 +13,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  final List<_QuickAction> _quickActions = const [
-    _QuickAction(
-      title: 'Base 系列',
-      subtitle: 'Base2/Base16/Base64 等快速转换',
-      route: '/encoding/base',
-      icon: Icons.tag,
-      color: Color(0xFF2B64D1),
-    ),
-    _QuickAction(
-      title: '文本编码',
-      subtitle: 'URL/HTML/Morse/Quoted-Printable',
-      route: '/encoding/text',
-      icon: Icons.text_fields,
-      color: Color(0xFF0F9F6D),
-    ),
-    _QuickAction(
-      title: 'ProtoBuf',
-      subtitle: '硬解码 + Schema 编解码',
-      route: '/encoding/protobuf',
-      icon: Icons.schema,
-      color: Color(0xFFE09E3A),
-    ),
-    _QuickAction(
-      title: '数值进制',
-      subtitle: '2~64 进制互转 / BCD / Bin-Hex',
-      route: '/encoding/number',
-      icon: Icons.numbers,
-      color: Color(0xFF7C61FF),
-    ),
-    _QuickAction(
-      title: '压缩工具',
-      subtitle: 'Gzip / Zlib 压缩与解压',
-      route: '/encoding/compress',
-      icon: Icons.compress,
-      color: Color(0xFF00A3A3),
-    ),
-    _QuickAction(
-      title: '信息收集',
-      subtitle: 'DNS / WHOIS 快速查询',
-      route: '/network/recon',
-      icon: Icons.travel_explore,
-      color: Color(0xFFCE5F6A),
-    ),
-  ];
-
   @override
   void dispose() {
     _searchController.dispose();
@@ -65,24 +21,26 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: const Color(0xFF101622),
+      backgroundColor: scheme.surface,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              _buildTopBar(context),
+              _buildTopBar(context, isMobile: isMobile, scheme: scheme),
               const SizedBox(height: 16),
-              _buildSearchBar(),
+              _buildSearchBar(scheme),
               const SizedBox(height: 16),
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     if (constraints.maxWidth < 980) {
-                      return _buildNarrowLayout(context);
+                      return _buildNarrowLayout(context, scheme);
                     }
-                    return _buildWideLayout(context);
+                    return _buildWideLayout(context, scheme);
                   },
                 ),
               ),
@@ -93,16 +51,51 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildTopBar(BuildContext context) {
+  Widget _buildTopBar(
+    BuildContext context, {
+    required bool isMobile,
+    required ColorScheme scheme,
+  }) {
+    if (isMobile) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'CTF Tools 控制台',
+            style: TextStyle(
+              color: scheme.onSurface,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.3,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '简洁、高效、顺手的常用工具入口',
+            style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerRight,
+            child: _pillButton(
+              context: context,
+              icon: Icons.settings,
+              text: '设置',
+              onPressed: () => context.go('/settings'),
+            ),
+          ),
+        ],
+      );
+    }
     return Row(
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text(
               'CTF Tools 控制台',
               style: TextStyle(
-                color: Color(0xFFFFE1D4),
+                color: scheme.onSurface,
                 fontSize: 28,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.3,
@@ -111,12 +104,13 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(height: 6),
             Text(
               '简洁、高效、顺手的常用工具入口',
-              style: TextStyle(color: Color(0xFF9497A0), fontSize: 14),
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 14),
             ),
           ],
         ),
         const Spacer(),
         _pillButton(
+          context: context,
           icon: Icons.settings,
           text: '设置',
           onPressed: () => context.go('/settings'),
@@ -125,23 +119,23 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(ColorScheme scheme) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
+        color: scheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF1F2A44)),
+        border: Border.all(color: scheme.outlineVariant),
       ),
       child: TextField(
         controller: _searchController,
-        style: const TextStyle(color: Colors.white),
+        style: TextStyle(color: scheme.onSurface),
         decoration: InputDecoration(
           hintText: '搜索工具：base64 / protobuf / whois ...',
-          hintStyle: const TextStyle(color: Color(0xFF6B7280)),
-          prefixIcon: const Icon(Icons.search, color: Color(0xFF8FA4C5)),
+          hintStyle: TextStyle(color: scheme.onSurfaceVariant),
+          prefixIcon: Icon(Icons.search, color: scheme.onSurfaceVariant),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.close, color: Color(0xFF8FA4C5)),
+                  icon: Icon(Icons.close, color: scheme.onSurfaceVariant),
                   onPressed: () {
                     _searchController.clear();
                     setState(() {});
@@ -159,29 +153,36 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildWideLayout(BuildContext context) {
+  Widget _buildWideLayout(BuildContext context, ColorScheme scheme) {
     return Row(
       children: [
         Expanded(
           flex: 3,
-          child: _buildQuickActionsGrid(context, crossAxisCount: 3),
+          child: _buildQuickActionsGrid(
+            context,
+            scheme: scheme,
+            crossAxisCount: 3,
+          ),
         ),
         const SizedBox(width: 16),
-        Expanded(flex: 2, child: _buildRightPanel(context)),
+        Expanded(flex: 2, child: _buildRightPanel(context, scheme)),
       ],
     );
   }
 
-  Widget _buildNarrowLayout(BuildContext context) {
+  Widget _buildNarrowLayout(BuildContext context, ColorScheme scheme) {
     return SingleChildScrollView(
       child: Column(
         children: [
-          SizedBox(
-            height: 480,
-            child: _buildQuickActionsGrid(context, crossAxisCount: 2),
+          _buildQuickActionsGrid(
+            context,
+            scheme: scheme,
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            scrollable: false,
           ),
           const SizedBox(height: 12),
-          _buildRightPanel(context),
+          _buildRightPanel(context, scheme),
         ],
       ),
     );
@@ -189,12 +190,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildQuickActionsGrid(
     BuildContext context, {
+    required ColorScheme scheme,
     required int crossAxisCount,
+    bool shrinkWrap = false,
+    bool scrollable = true,
   }) {
+    final allActions = _quickActions(scheme);
     final keyword = _searchController.text.trim().toLowerCase();
     final data = keyword.isEmpty
-        ? _quickActions
-        : _quickActions
+        ? allActions
+        : allActions
               .where(
                 (item) =>
                     item.title.toLowerCase().contains(keyword) ||
@@ -203,7 +208,10 @@ class _HomeScreenState extends State<HomeScreen> {
               .toList();
 
     return GridView.builder(
-      physics: const BouncingScrollPhysics(),
+      physics: scrollable
+          ? const BouncingScrollPhysics()
+          : const NeverScrollableScrollPhysics(),
+      shrinkWrap: shrinkWrap,
       itemCount: data.length,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
@@ -222,38 +230,52 @@ class _HomeScreenState extends State<HomeScreen> {
               gradient: LinearGradient(
                 colors: [
                   item.color.withValues(alpha: 0.28),
-                  const Color(0xFF0E1628),
+                  scheme.surfaceContainerLow,
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               border: Border.all(color: item.color.withValues(alpha: 0.45)),
             ),
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(item.icon, color: item.color, size: 22),
-                const Spacer(),
-                Text(
-                  item.title,
-                  style: const TextStyle(
-                    color: Color(0xFFFFEDE5),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+            child: LayoutBuilder(
+              builder: (context, tileConstraints) {
+                final isTight = tileConstraints.maxHeight < 92;
+                final innerPadding = isTight ? 10.0 : 14.0;
+                return Padding(
+                  padding: EdgeInsets.all(innerPadding),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Icon(
+                        item.icon,
+                        color: item.color,
+                        size: isTight ? 18 : 22,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: scheme.onSurface,
+                          fontSize: isTight ? 14 : 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        item.subtitle,
+                        maxLines: isTight ? 1 : 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: scheme.onSurfaceVariant,
+                          fontSize: isTight ? 11 : 12,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  item.subtitle,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Color(0xFF9CA3AF),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
+                );
+              },
             ),
           ),
         );
@@ -261,10 +283,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildRightPanel(BuildContext context) {
+  Widget _buildRightPanel(BuildContext context, ColorScheme scheme) {
     return Column(
       children: [
         _panelCard(
+          scheme: scheme,
           title: '常用流程',
           child: Column(
             children: [
@@ -290,11 +313,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height: 12),
         _panelCard(
+          scheme: scheme,
           title: '使用提示',
-          child: const Text(
+          child: Text(
             '建议优先从“常用入口”进入，遇到二进制 payload 可先做 Base/Hex 归一化，再进 ProtoBuf 或文本工具解析。',
             style: TextStyle(
-              color: Color(0xFFB6BDC8),
+              color: scheme.onSurfaceVariant,
               fontSize: 13,
               height: 1.6,
             ),
@@ -304,22 +328,26 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _panelCard({required String title, required Widget child}) {
+  Widget _panelCard({
+    required ColorScheme scheme,
+    required String title,
+    required Widget child,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
+        color: scheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF243042)),
+        border: Border.all(color: scheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color: Color(0xFFFFE1D4),
+            style: TextStyle(
+              color: scheme.onSurface,
               fontWeight: FontWeight.w700,
               fontSize: 16,
             ),
@@ -336,19 +364,20 @@ class _HomeScreenState extends State<HomeScreen> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final scheme = Theme.of(context).colorScheme;
     return InkWell(
       borderRadius: BorderRadius.circular(10),
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
-          color: const Color(0xFF121E34),
+          color: scheme.surfaceContainer,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFF223358)),
+          border: Border.all(color: scheme.outlineVariant),
         ),
         child: Row(
           children: [
-            const Icon(Icons.play_arrow, color: Color(0xFF8FB1FF), size: 18),
+            Icon(Icons.play_arrow, color: scheme.primary, size: 18),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -356,8 +385,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: Color(0xFFEDEFF4),
+                    style: TextStyle(
+                      color: scheme.onSurface,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -365,15 +394,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      color: Color(0xFF9DA8B8),
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
                       fontSize: 12,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: Color(0xFF7C8CA8), size: 18),
+            Icon(Icons.chevron_right, color: scheme.onSurfaceVariant, size: 18),
           ],
         ),
       ),
@@ -381,14 +410,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _pillButton({
+    required BuildContext context,
     required IconData icon,
     required String text,
     required VoidCallback onPressed,
   }) {
+    final scheme = Theme.of(context).colorScheme;
     return FilledButton.icon(
       style: FilledButton.styleFrom(
-        backgroundColor: const Color(0xFF122244),
-        foregroundColor: const Color(0xFFBBD3FF),
+        backgroundColor: scheme.primary.withValues(alpha: 0.2),
+        foregroundColor: scheme.onSurface,
         visualDensity: VisualDensity.compact,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -397,6 +428,61 @@ class _HomeScreenState extends State<HomeScreen> {
       icon: Icon(icon, size: 16),
       label: Text(text, style: const TextStyle(fontSize: 12)),
     );
+  }
+
+  List<_QuickAction> _quickActions(ColorScheme scheme) {
+    final accents = [
+      scheme.primary,
+      scheme.secondary,
+      scheme.tertiary,
+      scheme.primaryContainer,
+      scheme.secondaryContainer,
+      scheme.tertiaryContainer,
+    ];
+    return [
+      _QuickAction(
+        title: 'Base 系列',
+        subtitle: 'Base2/Base16/Base64 等快速转换',
+        route: '/encoding/base',
+        icon: Icons.tag,
+        color: accents[0],
+      ),
+      _QuickAction(
+        title: '文本编码',
+        subtitle: 'URL/HTML/Morse/Quoted-Printable',
+        route: '/encoding/text',
+        icon: Icons.text_fields,
+        color: accents[1],
+      ),
+      _QuickAction(
+        title: 'ProtoBuf',
+        subtitle: '硬解码 + Schema 编解码',
+        route: '/encoding/protobuf',
+        icon: Icons.schema,
+        color: accents[2],
+      ),
+      _QuickAction(
+        title: '数值进制',
+        subtitle: '2~64 进制互转 / BCD / Bin-Hex',
+        route: '/encoding/number',
+        icon: Icons.numbers,
+        color: accents[3],
+      ),
+      _QuickAction(
+        title: '压缩工具',
+        subtitle: 'Gzip / Zlib 压缩与解压',
+        route: '/encoding/compress',
+        icon: Icons.compress,
+        color: accents[4],
+      ),
+      _QuickAction(
+        title: '信息收集',
+        subtitle: 'DNS / WHOIS 快速查询',
+        route: '/network/recon',
+        icon: Icons.travel_explore,
+        color: accents[5],
+      ),
+    ];
   }
 }
 

@@ -45,9 +45,10 @@ class MDropdownMenuState extends State<MDropdownMenu> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final borderColor = _hovered
-        ? const Color(0xFF2E4EC9)
-        : const Color(0xFF0F17AA);
+        ? scheme.primary.withValues(alpha: 0.9)
+        : scheme.primary.withValues(alpha: 0.55);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
@@ -55,40 +56,70 @@ class MDropdownMenuState extends State<MDropdownMenu> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 120),
         curve: Curves.easeOut,
+        constraints: const BoxConstraints(minWidth: 72),
         decoration: BoxDecoration(
-          color: const Color(0xFF0F172A),
+          color: scheme.surfaceContainerHighest.withValues(alpha: 0.45),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: borderColor, width: 1),
           boxShadow: _hovered
               ? [
-                  const BoxShadow(
-                    color: Color(0x221B3EA3),
+                  BoxShadow(
+                    color: scheme.primary.withValues(alpha: 0.2),
                     blurRadius: 8,
-                    offset: Offset(0, 2),
+                    offset: const Offset(0, 2),
                   ),
                 ]
               : null,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Theme(
-          data: Theme.of(
-            context,
-          ).copyWith(canvasColor: const Color(0xFF0F172A)),
-          child: DropdownButton<String>(
-            value: selected,
-            elevation: 3,
-            style: const TextStyle(color: Colors.white, fontSize: 12),
-            underline: Container(),
-            items: widget.items.map((item) {
-              return DropdownMenuItem<String>(value: item, child: Text(item));
-            }).toList(),
-            onChanged: (value) {
-              if (value == null) return;
-              setState(() {
-                selected = value;
-              });
-              widget.onChanged?.call(value);
-            },
+          data: Theme.of(context).copyWith(
+            canvasColor: scheme.surfaceContainerHighest.withValues(alpha: 0.9),
+          ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: DropdownButton<String>(
+              value: selected,
+              elevation: 3,
+              isDense: true,
+              style: TextStyle(color: scheme.onSurface, fontSize: 12),
+              underline: Container(),
+              selectedItemBuilder: (context) {
+                return widget.items
+                    .map(
+                      (item) => ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 120),
+                        child: Text(
+                          item,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: false,
+                        ),
+                      ),
+                    )
+                    .toList();
+              },
+              items: widget.items.map((item) {
+                return DropdownMenuItem<String>(
+                  value: item,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 220),
+                    child: Text(
+                      item,
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: false,
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value == null) return;
+                setState(() {
+                  selected = value;
+                });
+                widget.onChanged?.call(value);
+              },
+            ),
           ),
         ),
       ),

@@ -4,6 +4,7 @@ import 'package:ctf_tools/shared/widgets/mbutton.dart';
 import 'package:ctf_tools/shared/widgets/show_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:ctf_tools/shared/layout/responsive.dart';
 
 class ProtobufCoder extends StatefulWidget {
   const ProtobufCoder({super.key});
@@ -13,6 +14,7 @@ class ProtobufCoder extends StatefulWidget {
 }
 
 class _ProtobufCoderState extends State<ProtobufCoder> {
+  ColorScheme get scheme => Theme.of(context).colorScheme;
   static const String _modeHardDecode = '无 Proto 硬解码';
   static const String _modeSchemaDecode = '有 Proto 解码';
   static const String _modeSchemaEncode = '有 Proto 编码';
@@ -50,29 +52,34 @@ class _ProtobufCoderState extends State<ProtobufCoder> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
     return Container(
-      color: const Color(0xFF101622),
+      color: scheme.surface,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: SingleChildScrollView(
           child: Column(
             children: [
-              Row(
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 10,
+                runSpacing: 10,
                 children: [
-                  const Text(
+                  Text(
                     'ProtoBuf 编码/解码',
                     style: TextStyle(
-                      fontSize: 26,
+                      fontSize: isMobile ? 22 : 26,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFFFE1D4),
+                      color: scheme.onSurface,
                     ),
                   ),
-                  const SizedBox(width: 20),
-                  const Text(
+                  Text(
                     '模式',
-                    style: TextStyle(color: Color(0xFF9497A0), fontSize: 16),
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 16,
+                    ),
                   ),
-                  const SizedBox(width: 6),
                   MDropdownMenu(
                     initialValue: _selectedMode,
                     items: _modes,
@@ -82,12 +89,13 @@ class _ProtobufCoderState extends State<ProtobufCoder> {
                       });
                     },
                   ),
-                  const SizedBox(width: 12),
-                  const Text(
+                  Text(
                     '格式',
-                    style: TextStyle(color: Color(0xFF9497A0), fontSize: 16),
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 16,
+                    ),
                   ),
-                  const SizedBox(width: 6),
                   MDropdownMenu(
                     initialValue: _selectedFormat,
                     items: _formats,
@@ -109,25 +117,25 @@ class _ProtobufCoderState extends State<ProtobufCoder> {
               TextField(
                 controller: _inputController,
                 maxLines: 8,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: scheme.onSurface),
                 decoration: _textFieldDecoration(),
               ),
               const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 12,
+                runSpacing: 10,
                 children: [
                   MElevatedButton(
                     icon: Icons.play_arrow,
                     text: _selectedMode == _modeSchemaEncode ? '编码' : '解码',
                     onPressed: _run,
                   ),
-                  const SizedBox(width: 12),
                   MElevatedButton(
                     icon: Icons.sync_alt,
                     text: '交换',
                     onPressed: _swap,
                   ),
-                  const SizedBox(width: 12),
                   MElevatedButton(
                     icon: Icons.delete,
                     text: '清空',
@@ -139,13 +147,13 @@ class _ProtobufCoderState extends State<ProtobufCoder> {
               _buildOutputHeader(),
               const SizedBox(height: 8),
               SizedBox(
-                height: 260,
+                height: isMobile ? 220 : 260,
                 child: TextField(
                   controller: _outputController,
                   maxLines: null,
                   expands: true,
                   readOnly: true,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: scheme.onSurface),
                   decoration: _textFieldDecoration(),
                 ),
               ),
@@ -159,18 +167,20 @@ class _ProtobufCoderState extends State<ProtobufCoder> {
   Widget _buildSchemaEditor() {
     return Column(
       children: [
-        Row(
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 8,
           children: [
-            const Text(
+            Text(
               'Proto Schema',
-              style: TextStyle(color: Color(0xFF9497A0), fontSize: 16),
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16),
             ),
-            const SizedBox(width: 8),
             SizedBox(
-              width: 220,
+              width: 260,
               child: TextField(
                 controller: _rootMessageController,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: scheme.onSurface),
                 decoration: _textFieldDecoration(hintText: 'Root Message（可选）'),
               ),
             ),
@@ -180,7 +190,7 @@ class _ProtobufCoderState extends State<ProtobufCoder> {
         TextField(
           controller: _schemaController,
           maxLines: 6,
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: scheme.onSurface),
           decoration: _textFieldDecoration(
             hintText: 'message User { uint32 id = 1; string name = 2; }',
           ),
@@ -195,13 +205,15 @@ class _ProtobufCoderState extends State<ProtobufCoder> {
       label = '输入 JSON（按 schema 字段名）';
     }
 
-    return Row(
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 10,
+      runSpacing: 8,
       children: [
         Text(
           label,
-          style: const TextStyle(color: Color(0xFF9497A0), fontSize: 16),
+          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16),
         ),
-        const Spacer(),
         MElevatedButton(
           icon: Icons.copy,
           text: '复制输入',
@@ -212,15 +224,17 @@ class _ProtobufCoderState extends State<ProtobufCoder> {
   }
 
   Widget _buildOutputHeader() {
-    return Row(
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 10,
+      runSpacing: 8,
       children: [
         Text(
           _selectedMode == _modeSchemaEncode
               ? '输出 (${_selectedFormat.toUpperCase()})'
               : '输出 JSON',
-          style: const TextStyle(color: Color(0xFF9497A0), fontSize: 16),
+          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16),
         ),
-        const Spacer(),
         MElevatedButton(
           icon: Icons.copy,
           text: '复制输出',
@@ -233,14 +247,14 @@ class _ProtobufCoderState extends State<ProtobufCoder> {
   InputDecoration _textFieldDecoration({String? hintText}) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: const TextStyle(color: Color(0xFF6B7280)),
+      hintStyle: TextStyle(color: scheme.onSurfaceVariant),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFF0F17AA)),
+        borderSide: BorderSide(color: scheme.outlineVariant),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
+        borderSide: BorderSide(color: scheme.primary, width: 1.5),
       ),
     );
   }

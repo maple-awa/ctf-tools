@@ -10,13 +10,20 @@ class ThemeProvider with ChangeNotifier {
   bool get isDark => _isDark;
 
   /// 当前主题主色。
-  Color get color => _isDark ? AppTheme.colors[_colorIndex].dark : AppTheme.colors[_colorIndex].light;
+  Color get color => _isDark
+      ? AppTheme.colors[_colorIndex].dark
+      : AppTheme.colors[_colorIndex].light;
+
+  /// 当前选中的主题色对。
+  ThemeColor get selectedThemeColor => AppTheme.colors[_colorIndex];
 
   /// 当前主题色索引。
   int get selectedColorIndex => _colorIndex;
 
   /// 当前生效的主题对象。
-  ThemeData get currentTheme => _isDark ? AppTheme.darkTheme(color) : AppTheme.lightTheme(color);
+  ThemeData get currentTheme => _isDark
+      ? AppTheme.darkTheme(selectedThemeColor.dark)
+      : AppTheme.lightTheme(selectedThemeColor.light);
 
   /// 在亮色与暗色之间切换。
   void toggleTheme() {

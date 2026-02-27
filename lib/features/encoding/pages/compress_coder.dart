@@ -4,6 +4,7 @@ import 'package:ctf_tools/shared/widgets/mbutton.dart';
 import 'package:ctf_tools/shared/widgets/show_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:ctf_tools/shared/layout/responsive.dart';
 
 class CompressCoderScreen extends StatefulWidget {
   const CompressCoderScreen({super.key});
@@ -13,6 +14,7 @@ class CompressCoderScreen extends StatefulWidget {
 }
 
 class _CompressCoderScreen extends State<CompressCoderScreen> {
+  ColorScheme get scheme => Theme.of(context).colorScheme;
   final TextEditingController inputController = TextEditingController();
   final TextEditingController outputController = TextEditingController();
 
@@ -44,18 +46,20 @@ class _CompressCoderScreen extends State<CompressCoderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+    final scheme = Theme.of(context).colorScheme;
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: const Color(0xFF101622),
+        backgroundColor: scheme.surface,
         appBar: AppBar(
-          backgroundColor: const Color(0xFF101622),
-          title: const Text(
+          backgroundColor: scheme.surface,
+          title: Text(
             "Gzip/Zlib 压缩/解压",
             style: TextStyle(
-              fontSize: 26,
+              fontSize: isMobile ? 22 : 26,
               fontWeight: FontWeight.bold,
-              color: Color(0xFFFFE1D4),
+              color: scheme.onSurface,
             ),
           ),
           centerTitle: false,
@@ -63,11 +67,12 @@ class _CompressCoderScreen extends State<CompressCoderScreen> {
         body: Column(
           children: [
             const SizedBox(height: 8),
-            const TabBar(
-              labelColor: Colors.white,
-              unselectedLabelColor: Color(0xFF9497A0),
-              indicatorColor: Color(0xFF2B64D1),
-              tabs: [
+            TabBar(
+              isScrollable: isMobile,
+              labelColor: scheme.primary,
+              unselectedLabelColor: scheme.onSurfaceVariant,
+              indicatorColor: scheme.primary,
+              tabs: const [
                 Tab(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -93,8 +98,8 @@ class _CompressCoderScreen extends State<CompressCoderScreen> {
             Expanded(
               child: TabBarView(
                 children: [
-                  _buildPanel(CompressAlgorithm.gzip),
-                  _buildPanel(CompressAlgorithm.zlib),
+                  _buildPanel(CompressAlgorithm.gzip, isMobile: isMobile),
+                  _buildPanel(CompressAlgorithm.zlib, isMobile: isMobile),
                 ],
               ),
             ),
@@ -104,168 +109,173 @@ class _CompressCoderScreen extends State<CompressCoderScreen> {
     );
   }
 
-  Widget _buildPanel(CompressAlgorithm algorithm) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              const Text(
-                "输入格式",
-                style: TextStyle(color: Color(0xFF9497A0), fontSize: 16),
-              ),
-              const SizedBox(width: 6),
-              MDropdownMenu(
-                initialValue: inputFormatLabel,
-                items: _formatItems,
-                onChanged: (value) {
-                  setState(() {
-                    inputFormatLabel = value;
-                  });
-                },
-              ),
-              const SizedBox(width: 16),
-              const Text(
-                "输出格式",
-                style: TextStyle(color: Color(0xFF9497A0), fontSize: 16),
-              ),
-              const SizedBox(width: 6),
-              MDropdownMenu(
-                initialValue: outputFormatLabel,
-                items: _formatItems,
-                onChanged: (value) {
-                  setState(() {
-                    outputFormatLabel = value;
-                  });
-                },
-              ),
-              const SizedBox(width: 16),
-              const Text(
-                "压缩级别",
-                style: TextStyle(color: Color(0xFF9497A0), fontSize: 16),
-              ),
-              const SizedBox(width: 6),
-              MDropdownMenu(
-                initialValue: compressionLevel,
-                items: _levelItems,
-                onChanged: (value) {
-                  setState(() {
-                    compressionLevel = value;
-                  });
-                },
-              ),
-              const Spacer(),
-              MElevatedButton(
-                icon: Icons.copy,
-                text: "复制输出",
-                onPressed: () => _copyText(outputController.text),
-              ),
-              const SizedBox(width: 12),
-              MElevatedButton(
-                icon: Icons.delete,
-                text: "清空",
-                onPressed: _clear,
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              const Text(
-                "输入框 (INPUT)",
-                style: TextStyle(color: Color(0xFF9497A0), fontSize: 16),
-              ),
-              const SizedBox(width: 12),
-              _tag(
-                inputFormatLabel,
-                const Color(0xFF122244),
-                const Color(0xFF2B64D1),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            maxLines: 7,
-            controller: inputController,
-            style: const TextStyle(color: Colors.white),
-            decoration: _textFieldDecoration(),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              MElevatedButton(
-                icon: Icons.compress,
-                iconColor: Colors.white,
-                text: "压缩",
-                textColor: Colors.white,
-                onPressed: () => _process(algorithm, false),
-              ),
-              const SizedBox(width: 20),
-              MElevatedButton(
-                icon: Icons.unarchive,
-                iconColor: Colors.white,
-                text: "解压",
-                textColor: Colors.white,
-                onPressed: () => _process(algorithm, true),
-              ),
-              const SizedBox(width: 20),
-              MElevatedButton(
-                icon: Icons.sync_outlined,
-                iconColor: Colors.white,
-                text: "交换",
-                textColor: Colors.white,
-                onPressed: () {
-                  setState(() {
-                    swapTextTemp = inputController.text;
-                    inputController.text = outputController.text;
-                    outputController.text = swapTextTemp;
-                  });
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              const Text(
-                "输出框 (OUTPUT)",
-                style: TextStyle(color: Color(0xFF9497A0), fontSize: 16),
-              ),
-              const SizedBox(width: 12),
-              _tag(
-                outputFormatLabel,
-                const Color(0xFF0C312D),
-                const Color(0xFF0F9F6D),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: TextField(
-              maxLines: null,
-              expands: true,
-              textAlignVertical: TextAlignVertical.top,
-              controller: outputController,
-              style: const TextStyle(color: Colors.white),
-              decoration: _textFieldDecoration(),
+  Widget _buildPanel(CompressAlgorithm algorithm, {required bool isMobile}) {
+    final content = Column(
+      children: [
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            Text(
+              "输入格式",
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16),
             ),
-          ),
-        ],
-      ),
+            const SizedBox(width: 6),
+            MDropdownMenu(
+              initialValue: inputFormatLabel,
+              items: _formatItems,
+              onChanged: (value) {
+                setState(() {
+                  inputFormatLabel = value;
+                });
+              },
+            ),
+            Text(
+              "输出格式",
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16),
+            ),
+            const SizedBox(width: 6),
+            MDropdownMenu(
+              initialValue: outputFormatLabel,
+              items: _formatItems,
+              onChanged: (value) {
+                setState(() {
+                  outputFormatLabel = value;
+                });
+              },
+            ),
+            Text(
+              "压缩级别",
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16),
+            ),
+            const SizedBox(width: 6),
+            MDropdownMenu(
+              initialValue: compressionLevel,
+              items: _levelItems,
+              onChanged: (value) {
+                setState(() {
+                  compressionLevel = value;
+                });
+              },
+            ),
+            MElevatedButton(
+              icon: Icons.copy,
+              text: "复制输出",
+              onPressed: () => _copyText(outputController.text),
+            ),
+            MElevatedButton(icon: Icons.delete, text: "清空", onPressed: _clear),
+          ],
+        ),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            Text(
+              "输入框 (INPUT)",
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16),
+            ),
+            const SizedBox(width: 12),
+            _tag(
+              inputFormatLabel,
+              scheme.primary.withValues(alpha: 0.18),
+              scheme.primary,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          maxLines: 7,
+          controller: inputController,
+          style: TextStyle(color: scheme.onSurface),
+          decoration: _textFieldDecoration(),
+        ),
+        const SizedBox(height: 20),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 12,
+          runSpacing: 10,
+          children: [
+            MElevatedButton(
+              icon: Icons.compress,
+              iconColor: scheme.onSurface,
+              text: "压缩",
+              textColor: scheme.onSurface,
+              onPressed: () => _process(algorithm, false),
+            ),
+            MElevatedButton(
+              icon: Icons.unarchive,
+              iconColor: scheme.onSurface,
+              text: "解压",
+              textColor: scheme.onSurface,
+              onPressed: () => _process(algorithm, true),
+            ),
+            MElevatedButton(
+              icon: Icons.sync_outlined,
+              iconColor: scheme.onSurface,
+              text: "交换",
+              textColor: scheme.onSurface,
+              onPressed: () {
+                setState(() {
+                  swapTextTemp = inputController.text;
+                  inputController.text = outputController.text;
+                  outputController.text = swapTextTemp;
+                });
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            Text(
+              "输出框 (OUTPUT)",
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16),
+            ),
+            const SizedBox(width: 12),
+            _tag(
+              outputFormatLabel,
+              scheme.secondary.withValues(alpha: 0.18),
+              scheme.secondary,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (isMobile)
+          SizedBox(height: 260, child: _buildOutputField())
+        else
+          Expanded(child: _buildOutputField()),
+      ],
+    );
+    if (isMobile) {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: content,
+      );
+    }
+    return Padding(padding: const EdgeInsets.all(20), child: content);
+  }
+
+  Widget _buildOutputField() {
+    return TextField(
+      maxLines: null,
+      expands: true,
+      textAlignVertical: TextAlignVertical.top,
+      controller: outputController,
+      style: TextStyle(color: scheme.onSurface),
+      decoration: _textFieldDecoration(),
     );
   }
 
   InputDecoration _textFieldDecoration() {
+    final scheme = Theme.of(context).colorScheme;
     return InputDecoration(
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFF0F17AA)),
+        borderSide: BorderSide(color: scheme.outlineVariant),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
+        borderSide: BorderSide(color: scheme.primary, width: 1.5),
       ),
     );
   }

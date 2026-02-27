@@ -4,6 +4,7 @@ import 'package:ctf_tools/shared/widgets/mbutton.dart';
 import 'package:ctf_tools/shared/widgets/show_toast.dart';
 import 'package:dns_client/dns_client.dart';
 import 'package:flutter/material.dart';
+import 'package:ctf_tools/shared/layout/responsive.dart';
 
 class DnsQueryScreen extends StatefulWidget {
   const DnsQueryScreen({super.key});
@@ -13,20 +14,29 @@ class DnsQueryScreen extends StatefulWidget {
 }
 
 class _DnsQueryScreen extends State<DnsQueryScreen> {
+  ColorScheme get scheme => Theme.of(context).colorScheme;
+
   /// 输入框文本控制器。
   TextEditingController inputController = TextEditingController();
+
   /// 输出框文本控制器（文本模式）。
   TextEditingController outputController = TextEditingController();
+
   /// 是否启用自定义 DNS 服务器。
   bool isEnableDns = false;
+
   /// 是否输出为纯文本模式。
   bool isRawMode = false;
+
   /// 自定义 DNS 地址输入控制器。
   TextEditingController dnsController = TextEditingController();
+
   /// 当前选中的内置 DNS 名称。
   String _selectedDnsKey = DnsUtils.dnsServers.keys.first;
+
   /// 表格模式下的行数据。
   List<DataRow> _resultRows = [];
+
   /// 自定义 DNS 客户端实例。
   DnsOverHttps? _customDns;
 
@@ -42,143 +52,151 @@ class _DnsQueryScreen extends State<DnsQueryScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Color(0xFF101622),
-      child: Padding(
-        padding: EdgeInsetsGeometry.all(20),
-        child: Column(
-          children: [
-            // 输入框标题
-            Row(
-              children: [
-                Text(
-                  "域名 (DOMAIN)",
-                  style: TextStyle(color: Color(0xFF9497A0), fontSize: 16),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Color(0xFF122244),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: EdgeInsets.all(5),
-                  child: Text(
-                    "INPUT",
-                    style: TextStyle(color: Color(0xFF2B64D1)),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Text(
-                  "自定义DNS服务器",
-                  style: TextStyle(color: Color(0xFF9497A0), fontSize: 16),
-                ),
-                Switch(
-                  value: isEnableDns,
-                  activeThumbColor: Colors.blueAccent, // 开关开启时的滑块颜色
-                  activeTrackColor: Colors.blueAccent[1], // 开关开启时的轨道颜色
-                  inactiveThumbColor: Colors.grey, // 开关关闭时的滑块颜色
-                  inactiveTrackColor: Colors.black, // 开关关闭时的轨道颜色
-                  onChanged: (value) {
-                    setState(() {
-                      isEnableDns = value;
-                    });
-                  },
-                ),
-                const SizedBox(width: 16),
-                Text(
-                  "文本模式",
-                  style: TextStyle(color: Color(0xFF9497A0), fontSize: 16),
-                ),
-                Switch(
-                  value: isRawMode,
-                  activeThumbColor: Colors.blueAccent, // 开关开启时的滑块颜色
-                  activeTrackColor: Colors.blueAccent[1], // 开关开启时的轨道颜色
-                  inactiveThumbColor: Colors.grey, // 开关关闭时的滑块颜色
-                  inactiveTrackColor: Colors.black, // 开关关闭时的轨道颜色
-                  onChanged: (value) {
-                    setState(() {
-                      isRawMode = value;
-                    });
-                  },
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            Row(
-              children: [
-                if (!isEnableDns) ...[
-                  MDropdownMenu(
-                    initialValue: _selectedDnsKey,
-                    items: DnsUtils.dnsServers
-                        .map((key, value) => MapEntry(key, key))
-                        .values
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedDnsKey = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(width: 6),
-                ],
-                Flexible(
-                  child: TextField(
-                    controller: inputController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: '输入想要查询的域名...',
-                      prefixIcon: Icon(Icons.search),
-                      suffixIcon: IconButton(
-                        icon: Icon(Icons.clear),
-                        onPressed: () {
-                          inputController.clear();
-                          setState(() {});
-                        },
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 20),
-                MElevatedButton(
-                  icon: Icons.search,
-                  text: "搜索",
-                  onPressed: () {
-                    _dnsSearch();
-                    setState(() {});
-                  },
-                ),
-                SizedBox(width: 20),
-                // 清空按钮
-                MElevatedButton(
-                  icon: Icons.delete,
-                  text: "清空",
-                  onPressed: () => {_clear()},
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            // 自定义DNS服务
-            if (isEnableDns) ...[
-              Row(
+      color: scheme.surface,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = Responsive.isMobileWidth(constraints.maxWidth);
+          final content = Column(
+            children: [
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 10,
+                runSpacing: 10,
                 children: [
                   Text(
-                    "自定义DNS服务器 (DNS Server)",
-                    style: TextStyle(color: Color(0xFF9497A0), fontSize: 16),
+                    "域名 (DOMAIN)",
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: scheme.primary.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.all(5),
+                    child: Text(
+                      "INPUT",
+                      style: TextStyle(color: scheme.primary),
+                    ),
+                  ),
+                  Text(
+                    "自定义DNS服务器",
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Switch(
+                    value: isEnableDns,
+                    activeThumbColor: scheme.primary,
+                    activeTrackColor: scheme.primary.withValues(alpha: 0.5),
+                    inactiveThumbColor: scheme.outline,
+                    inactiveTrackColor: scheme.surfaceContainerHighest,
+                    onChanged: (value) => setState(() => isEnableDns = value),
+                  ),
+                  Text(
+                    "文本模式",
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Switch(
+                    value: isRawMode,
+                    activeThumbColor: scheme.primary,
+                    activeTrackColor: scheme.primary.withValues(alpha: 0.5),
+                    inactiveThumbColor: scheme.outline,
+                    inactiveTrackColor: scheme.surfaceContainerHighest,
+                    onChanged: (value) => setState(() => isRawMode = value),
                   ),
                 ],
               ),
-              SizedBox(height: 12),
-              Flexible(
-                child: TextField(
+              const SizedBox(height: 20),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  if (!isEnableDns)
+                    MDropdownMenu(
+                      initialValue: _selectedDnsKey,
+                      items: DnsUtils.dnsServers.keys.toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedDnsKey = value;
+                        });
+                      },
+                    ),
+                  SizedBox(
+                    width: isMobile ? constraints.maxWidth - 40 : 420,
+                    child: TextField(
+                      controller: inputController,
+                      style: TextStyle(color: scheme.onSurface),
+                      decoration: InputDecoration(
+                        labelText: '输入想要查询的域名...',
+                        labelStyle: TextStyle(color: scheme.onSurfaceVariant),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            Icons.clear,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                          onPressed: () {
+                            inputController.clear();
+                            setState(() {});
+                          },
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                      ),
+                    ),
+                  ),
+                  MElevatedButton(
+                    icon: Icons.search,
+                    text: "搜索",
+                    onPressed: () {
+                      _dnsSearch();
+                      setState(() {});
+                    },
+                  ),
+                  MElevatedButton(
+                    icon: Icons.delete,
+                    text: "清空",
+                    onPressed: _clear,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              if (isEnableDns) ...[
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "自定义DNS服务器 (DNS Server)",
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
                   controller: dnsController,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: scheme.onSurface),
                   decoration: InputDecoration(
                     labelText: 'DNS 服务器...',
-                    prefixIcon: Icon(Icons.dns_outlined),
+                    labelStyle: TextStyle(color: scheme.onSurfaceVariant),
+                    prefixIcon: Icon(
+                      Icons.dns_outlined,
+                      color: scheme.onSurfaceVariant,
+                    ),
                     suffixIcon: IconButton(
-                      icon: Icon(Icons.clear),
+                      icon: Icon(Icons.clear, color: scheme.onSurfaceVariant),
                       onPressed: () {
                         dnsController.clear();
                         setState(() {});
@@ -189,68 +207,78 @@ class _DnsQueryScreen extends State<DnsQueryScreen> {
                     ),
                   ),
                 ),
-              ),
-              SizedBox(height: 12),
-            ],
-            // 输出框标题
-            Row(
-              children: [
-                Text(
-                  "输出 (OUTPUT)",
-                  style: TextStyle(color: Color(0xFF9497A0), fontSize: 16),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Color(0xFF0C312D),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: EdgeInsets.all(5),
-                  child: Text(
-                    "READY",
-                    style: TextStyle(color: Color(0xFF0F9F6D)),
-                  ),
-                ),
+                const SizedBox(height: 12),
               ],
-            ),
-            SizedBox(height: 20),
-
-            //输出框
-            Expanded(
-              child: isRawMode
-                  ? TextField(
-                      maxLines: null,
-                      expands: true,
-                      textAlignVertical: TextAlignVertical.top,
-                      textAlign: TextAlign.start,
-                      controller: outputController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Color(0xFF0F17AA)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF3B82F6), // 聚焦时高亮边框
-                            width: 1.5,
-                          ),
-                        ),
-                      ),
-                    )
-                  : SingleChildScrollView(
-                      // 横向滚动
-                      scrollDirection: Axis.horizontal,
-                      child: SingleChildScrollView(
-                        // 纵向滚动
-                        scrollDirection: Axis.vertical,
-                        child: _buildTableOutput(),
-                      ),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  Text(
+                    "输出 (OUTPUT)",
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 16,
                     ),
-            ),
-          ],
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: scheme.secondary.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.all(5),
+                    child: Text(
+                      "READY",
+                      style: TextStyle(color: scheme.secondary),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              if (isMobile)
+                SizedBox(height: 280, child: _buildOutputArea())
+              else
+                Expanded(child: _buildOutputArea()),
+            ],
+          );
+          if (isMobile) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: content,
+            );
+          }
+          return Padding(padding: const EdgeInsets.all(20), child: content);
+        },
+      ),
+    );
+  }
+
+  Widget _buildOutputArea() {
+    if (isRawMode) {
+      return TextField(
+        maxLines: null,
+        expands: true,
+        textAlignVertical: TextAlignVertical.top,
+        textAlign: TextAlign.start,
+        controller: outputController,
+        style: TextStyle(color: scheme.onSurface),
+        decoration: InputDecoration(
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: scheme.outlineVariant),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: scheme.primary, width: 1.5),
+          ),
         ),
+      );
+    }
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: _buildTableOutput(),
       ),
     );
   }
@@ -258,10 +286,10 @@ class _DnsQueryScreen extends State<DnsQueryScreen> {
   /// 构建表格模式输出组件。
   Widget _buildTableOutput() {
     if (_resultRows.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           '📭 无 DNS 记录',
-          style: TextStyle(color: Color(0xFF9497A0), fontSize: 16),
+          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16),
         ),
       );
     }
@@ -269,16 +297,16 @@ class _DnsQueryScreen extends State<DnsQueryScreen> {
       scrollDirection: Axis.horizontal,
       child: DataTable(
         dataRowColor: WidgetStateColor.resolveWith(
-          (states) => const Color(0xFF151B2A),
+          (states) => scheme.surfaceContainerLow,
         ),
         headingRowColor: WidgetStateColor.resolveWith(
-          (states) => const Color(0xFF1E293B),
+          (states) => scheme.surfaceContainerHigh,
         ),
-        headingTextStyle: const TextStyle(
+        headingTextStyle: TextStyle(
           fontWeight: FontWeight.bold,
-          color: Colors.white,
+          color: scheme.onSurface,
         ),
-        dataTextStyle: const TextStyle(color: Colors.white),
+        dataTextStyle: TextStyle(color: scheme.onSurface),
         columns: const [
           DataColumn(label: Text('记录类型')),
           DataColumn(label: Text('值')),
@@ -350,9 +378,7 @@ class _DnsQueryScreen extends State<DnsQueryScreen> {
         DataRow(
           cells: [
             const DataCell(Text('错误')),
-            DataCell(
-              Text(result.error!, style: const TextStyle(color: Colors.red)),
-            ),
+            DataCell(Text(result.error!, style: TextStyle(color: Colors.red))),
           ],
         ),
       );

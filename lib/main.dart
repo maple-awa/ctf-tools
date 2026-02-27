@@ -1,4 +1,5 @@
 import 'package:ctf_tools/core/route/app_routes.dart';
+import 'package:ctf_tools/shared/providers/theme/theme_color.dart';
 import 'package:ctf_tools/shared/providers/theme/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -19,15 +20,22 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      routerConfig: getRoute,
-      theme: ThemeData(
-          fontFamily: "MapleFont"
-      ),
-      darkTheme: ThemeData(
-          fontFamily: "MapleFont"
-      ),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        final lightTheme = AppTheme.lightTheme(
+          themeProvider.selectedThemeColor.light,
+        );
+        final darkTheme = AppTheme.darkTheme(
+          themeProvider.selectedThemeColor.dark,
+        );
+        return MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          routerConfig: getRoute,
+          theme: lightTheme,
+          darkTheme: darkTheme,
+          themeMode: themeProvider.isDark ? ThemeMode.dark : ThemeMode.light,
+        );
+      },
     );
   }
 }

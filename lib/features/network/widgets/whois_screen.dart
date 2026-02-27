@@ -5,6 +5,7 @@ import 'package:ctf_tools/shared/widgets/show_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:whois/whois.dart';
+import 'package:ctf_tools/shared/layout/responsive.dart';
 
 class WhoisScreen extends StatefulWidget {
   const WhoisScreen({super.key});
@@ -14,10 +15,14 @@ class WhoisScreen extends StatefulWidget {
 }
 
 class _WhoisScreen extends State<WhoisScreen> {
+  ColorScheme get scheme => Theme.of(context).colorScheme;
+
   /// 输入框文本控制器。
   TextEditingController inputController = TextEditingController();
+
   /// 输出框文本控制器。
   TextEditingController outputController = TextEditingController();
+
   /// 是否使用原始 WHOIS 输出模式。
   bool isRawMode = false;
 
@@ -31,153 +36,171 @@ class _WhoisScreen extends State<WhoisScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Color(0xFF101622),
-      child: Padding(
-        padding: EdgeInsetsGeometry.all(20),
-        child: Column(
-          children: [
-            // 输入框标题
-            Row(
-              children: [
-                Text(
-                  "域名 (DOMAIN)",
-                  style: TextStyle(color: Color(0xFF9497A0), fontSize: 16),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Color(0xFF122244),
-                    borderRadius: BorderRadius.circular(10),
+      color: scheme.surface,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = Responsive.isMobileWidth(constraints.maxWidth);
+          final content = Column(
+            children: [
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  Text(
+                    "域名 (DOMAIN)",
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 16,
+                    ),
                   ),
-                  padding: EdgeInsets.all(5),
-                  child: Text(
-                    "INPUT",
-                    style: TextStyle(color: Color(0xFF2B64D1)),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: scheme.primary.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.all(5),
+                    child: Text(
+                      "INPUT",
+                      style: TextStyle(color: scheme.primary),
+                    ),
                   ),
-                ),
-                Spacer(),
-              ],
-            ),
-            SizedBox(height: 20),
-            Row(
-              children: [
-                Flexible(
-                  child: TextField(
-                    controller: inputController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: '输入想要查询的域名...',
-                      prefixIcon: Icon(Icons.search),
-                      suffixIcon: inputController.text.isNotEmpty
-                          ? IconButton(
-                              icon: Icon(Icons.clear),
-                              onPressed: () {
-                                inputController.clear();
-                                setState(() {});
-                              },
-                            )
-                          : null,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  SizedBox(
+                    width: isMobile ? constraints.maxWidth - 40 : 420,
+                    child: TextField(
+                      controller: inputController,
+                      style: TextStyle(color: scheme.onSurface),
+                      decoration: InputDecoration(
+                        labelText: '输入想要查询的域名...',
+                        labelStyle: TextStyle(color: scheme.onSurfaceVariant),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                        suffixIcon: inputController.text.isNotEmpty
+                            ? IconButton(
+                                icon: Icon(
+                                  Icons.clear,
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                                onPressed: () {
+                                  inputController.clear();
+                                  setState(() {});
+                                },
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                SizedBox(width: 20),
-                MElevatedButton(
-                  icon: Icons.search,
-                  text: "查询",
-                  onPressed: () {
-                    _whoisSearch();
-                    setState(() {});
-                  },
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            // 输出框标题
-            Row(
-              children: [
-                Text(
-                  "输出框 (OUTPUT)",
-                  style: TextStyle(color: Color(0xFF9497A0), fontSize: 16),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Color(0xFF0C312D),
-                    borderRadius: BorderRadius.circular(10),
+                  MElevatedButton(
+                    icon: Icons.search,
+                    text: "查询",
+                    onPressed: () {
+                      _whoisSearch();
+                      setState(() {});
+                    },
                   ),
-                  padding: EdgeInsets.all(5),
-                  child: Text(
-                    "RAW OUTPUT",
-                    style: TextStyle(color: Color(0xFF0F9F6D)),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Switch(
-                  value: isRawMode,
-                  activeThumbColor: Colors.blueAccent, // 开关开启时的滑块颜色
-                  activeTrackColor: Colors.blueAccent[1], // 开关开启时的轨道颜色
-                  inactiveThumbColor: Colors.grey, // 开关关闭时的滑块颜色
-                  inactiveTrackColor: Colors.black, // 开关关闭时的轨道颜色
-                  onChanged: (value) {
-                    setState(() {
-                      isRawMode = value;
-                    });
-                  },
-                ),
-                Spacer(),
-
-                // 复制按钮
-                MElevatedButton(
-                  icon: Icons.copy,
-                  text: "复制",
-                  onPressed: () => {_copyText(outputController.text)},
-                ),
-                const SizedBox(width: 12),
-                // 导出文件按钮
-                MElevatedButton(
-                  icon: Icons.file_copy,
-                  text: "导出到文件",
-                  onPressed: () => {},
-                ),
-                const SizedBox(width: 12),
-                // 清空按钮
-                MElevatedButton(
-                  icon: Icons.delete,
-                  text: "清空",
-                  onPressed: () => {_clear()},
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-
-            //输出框
-            Expanded(
-              child: TextField(
-                maxLines: null,
-                expands: true,
-                textAlignVertical: TextAlignVertical.top,
-                textAlign: TextAlign.start,
-                controller: outputController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Color(0xFF0F17AA)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF3B82F6), // 聚焦时高亮边框
-                      width: 1.5,
+                ],
+              ),
+              const SizedBox(height: 20),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  Text(
+                    "输出框 (OUTPUT)",
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 16,
                     ),
                   ),
-                ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: scheme.secondary.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.all(5),
+                    child: Text(
+                      "RAW OUTPUT",
+                      style: TextStyle(color: scheme.secondary),
+                    ),
+                  ),
+                  Switch(
+                    value: isRawMode,
+                    activeThumbColor: scheme.primary,
+                    activeTrackColor: scheme.primary.withValues(alpha: 0.5),
+                    inactiveThumbColor: scheme.outline,
+                    inactiveTrackColor: scheme.surfaceContainerHighest,
+                    onChanged: (value) {
+                      setState(() {
+                        isRawMode = value;
+                      });
+                    },
+                  ),
+                  MElevatedButton(
+                    icon: Icons.copy,
+                    text: "复制",
+                    onPressed: () => _copyText(outputController.text),
+                  ),
+                  MElevatedButton(
+                    icon: Icons.file_copy,
+                    text: "导出到文件",
+                    onPressed: () => {},
+                  ),
+                  MElevatedButton(
+                    icon: Icons.delete,
+                    text: "清空",
+                    onPressed: _clear,
+                  ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+              if (isMobile)
+                SizedBox(height: 300, child: _buildOutputField())
+              else
+                Expanded(child: _buildOutputField()),
+            ],
+          );
+          if (isMobile) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: content,
+            );
+          }
+          return Padding(padding: const EdgeInsets.all(20), child: content);
+        },
+      ),
+    );
+  }
+
+  Widget _buildOutputField() {
+    return TextField(
+      maxLines: null,
+      expands: true,
+      textAlignVertical: TextAlignVertical.top,
+      textAlign: TextAlign.start,
+      controller: outputController,
+      style: TextStyle(color: scheme.onSurface),
+      decoration: InputDecoration(
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: scheme.outlineVariant),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: scheme.primary, width: 1.5),
         ),
       ),
     );

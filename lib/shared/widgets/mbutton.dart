@@ -9,20 +9,20 @@ class MElevatedButton extends StatefulWidget {
   final IconData icon;
 
   /// 图标颜色。
-  final Color iconColor;
+  final Color? iconColor;
 
   /// 按钮文案。
   final String text;
 
   /// 文案颜色。
-  final Color textColor;
+  final Color? textColor;
 
   const MElevatedButton({
     super.key,
     required this.icon,
-    this.iconColor = const Color(0xFF2B64D1),
+    this.iconColor,
     required this.text,
-    this.textColor = const Color(0xFF2B64D1),
+    this.textColor,
     required this.onPressed,
   });
 
@@ -36,9 +36,12 @@ class _MElevatedButtonState extends State<MElevatedButton> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final iconColor = widget.iconColor ?? scheme.primary;
+    final textColor = widget.textColor ?? scheme.primary;
     final bgColor = _hovered
-        ? const Color(0xFF17315F)
-        : const Color(0xFF122244);
+        ? scheme.primary.withValues(alpha: 0.55)
+        : scheme.primary.withValues(alpha: 0.35);
 
     final scale = _pressed
         ? 0.98
@@ -71,16 +74,33 @@ class _MElevatedButtonState extends State<MElevatedButton> {
               ),
             ),
             onPressed: widget.onPressed,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(widget.icon, color: widget.iconColor, size: 17),
-                const SizedBox(width: 4),
-                Text(
-                  widget.text,
-                  style: TextStyle(color: widget.textColor, fontSize: 13),
-                ),
-              ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // 在极窄宽度下退化为仅图标，避免 RenderFlex overflow。
+                final compact =
+                    constraints.maxWidth.isFinite && constraints.maxWidth < 56;
+                final textWidth = constraints.maxWidth.isFinite
+                    ? (constraints.maxWidth - 24).clamp(0.0, 240.0)
+                    : 240.0;
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(widget.icon, color: iconColor, size: 17),
+                    if (!compact) ...[
+                      const SizedBox(width: 4),
+                      SizedBox(
+                        width: textWidth,
+                        child: Text(
+                          widget.text,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: false,
+                          style: TextStyle(color: textColor, fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ],
+                );
+              },
             ),
           ),
         ),

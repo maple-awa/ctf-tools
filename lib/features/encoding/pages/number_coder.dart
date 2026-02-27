@@ -13,6 +13,7 @@ class NumberCoder extends StatefulWidget {
 }
 
 class _NumberCoderState extends State<NumberCoder> {
+  ColorScheme get scheme => Theme.of(context).colorScheme;
   static const String _modeBase = '进制互转(2~64)';
   static const String _modeBinaryHex = 'Binary ↔ Hex';
   static const String _modeBcd = '十进制 ↔ BCD';
@@ -41,7 +42,7 @@ class _NumberCoderState extends State<NumberCoder> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF101622),
+      color: scheme.surface,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: SingleChildScrollView(
@@ -54,17 +55,20 @@ class _NumberCoderState extends State<NumberCoder> {
                   spacing: 10,
                   runSpacing: 10,
                   children: [
-                    const Text(
+                    Text(
                       '数值与进制转换',
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFFFFE1D4),
+                        color: scheme.onSurface,
                       ),
                     ),
-                    const Text(
+                    Text(
                       '模式',
-                      style: TextStyle(color: Color(0xFF9497A0), fontSize: 16),
+                      style: TextStyle(
+                        color: scheme.onSurfaceVariant,
+                        fontSize: 16,
+                      ),
                     ),
                     MDropdownMenu(
                       initialValue: _mode,
@@ -76,10 +80,10 @@ class _NumberCoderState extends State<NumberCoder> {
                       },
                     ),
                     if (_mode == _modeBase) ...[
-                      const Text(
+                      Text(
                         'From',
                         style: TextStyle(
-                          color: Color(0xFF9497A0),
+                          color: scheme.onSurfaceVariant,
                           fontSize: 16,
                         ),
                       ),
@@ -92,10 +96,10 @@ class _NumberCoderState extends State<NumberCoder> {
                           });
                         },
                       ),
-                      const Text(
+                      Text(
                         'To',
                         style: TextStyle(
-                          color: Color(0xFF9497A0),
+                          color: scheme.onSurfaceVariant,
                           fontSize: 16,
                         ),
                       ),
@@ -119,11 +123,14 @@ class _NumberCoderState extends State<NumberCoder> {
               ),
               if (_mode == _modeBase) ...[
                 const SizedBox(height: 8),
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
                     '字符集: 0-9 A-Z a-z + /（2~36 支持小写兼容输入）',
-                    style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ],
@@ -133,7 +140,7 @@ class _NumberCoderState extends State<NumberCoder> {
               TextField(
                 controller: _inputController,
                 maxLines: 8,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: scheme.onSurface),
                 decoration: _inputDecoration(hintText: _inputHint),
               ),
               const SizedBox(height: 16),
@@ -170,7 +177,7 @@ class _NumberCoderState extends State<NumberCoder> {
                   maxLines: null,
                   expands: true,
                   readOnly: true,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: scheme.onSurface),
                   decoration: _inputDecoration(hintText: '转换结果输出在这里'),
                 ),
               ),
@@ -189,7 +196,7 @@ class _NumberCoderState extends State<NumberCoder> {
       children: [
         Text(
           '输入 (${_modeDescription(forEncode: true)})',
-          style: const TextStyle(color: Color(0xFF9497A0), fontSize: 16),
+          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16),
         ),
         _compactButton(
           icon: Icons.content_copy,
@@ -209,7 +216,7 @@ class _NumberCoderState extends State<NumberCoder> {
       children: [
         Text(
           '输出 (${_modeDescription(forEncode: false)})',
-          style: const TextStyle(color: Color(0xFF9497A0), fontSize: 16),
+          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16),
         ),
         _compactButton(
           icon: Icons.content_copy,
@@ -227,8 +234,8 @@ class _NumberCoderState extends State<NumberCoder> {
   }) {
     return FilledButton.icon(
       style: FilledButton.styleFrom(
-        backgroundColor: const Color(0xFF122244),
-        foregroundColor: const Color(0xFFBBD3FF),
+        backgroundColor: scheme.primary.withValues(alpha: 0.18),
+        foregroundColor: scheme.onSurface,
         visualDensity: VisualDensity.compact,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         minimumSize: const Size(0, 34),
@@ -236,21 +243,21 @@ class _NumberCoderState extends State<NumberCoder> {
       ),
       onPressed: onPressed,
       icon: Icon(icon, size: 16),
-      label: Text(text, style: const TextStyle(fontSize: 12)),
+      label: Text(text, style: TextStyle(fontSize: 12)),
     );
   }
 
   InputDecoration _inputDecoration({String? hintText}) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: const TextStyle(color: Color(0xFF6B7280)),
+      hintStyle: TextStyle(color: scheme.onSurfaceVariant),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFF0F17AA)),
+        borderSide: BorderSide(color: scheme.outlineVariant),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
+        borderSide: BorderSide(color: scheme.primary, width: 1.5),
       ),
     );
   }
