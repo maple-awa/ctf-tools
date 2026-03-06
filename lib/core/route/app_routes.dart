@@ -1,239 +1,221 @@
 import 'package:ctf_tools/core/route/nav_item.dart';
+import 'package:ctf_tools/features/binary/pages/binary_hub.dart';
+import 'package:ctf_tools/features/binary/pages/disasm_helper.dart';
+import 'package:ctf_tools/features/binary/pages/exploit_helper.dart';
+import 'package:ctf_tools/features/binary/pages/file_info.dart';
+import 'package:ctf_tools/features/binary/pages/strings_extractor.dart';
+import 'package:ctf_tools/features/crypto/pages/classical_cipher.dart';
+import 'package:ctf_tools/features/crypto/pages/crypto_hub.dart';
+import 'package:ctf_tools/features/crypto/pages/hash_tool.dart';
+import 'package:ctf_tools/features/crypto/pages/modern_crypto.dart';
+import 'package:ctf_tools/features/crypto/pages/xor_analysis.dart';
 import 'package:ctf_tools/features/encoding/pages/base_codec.dart';
 import 'package:ctf_tools/features/encoding/pages/compress_coder.dart';
+import 'package:ctf_tools/features/encoding/pages/encoding_hub.dart';
 import 'package:ctf_tools/features/encoding/pages/number_coder.dart';
 import 'package:ctf_tools/features/encoding/pages/protobuf_coder.dart';
+import 'package:ctf_tools/features/encoding/pages/replace_cipher.dart';
 import 'package:ctf_tools/features/encoding/pages/text_codec.dart';
+import 'package:ctf_tools/features/misc/pages/download_center.dart';
+import 'package:ctf_tools/features/network/pages/address_tools.dart';
+import 'package:ctf_tools/features/network/pages/http_request_builder.dart';
+import 'package:ctf_tools/features/network/pages/network_hub.dart';
 import 'package:ctf_tools/features/network/pages/recon.dart';
+import 'package:ctf_tools/features/network/pages/traffic_analysis.dart';
+import 'package:ctf_tools/features/stego/pages/audio_video_stego.dart';
+import 'package:ctf_tools/features/stego/pages/image_stego.dart';
+import 'package:ctf_tools/features/stego/pages/stego_hub.dart';
+import 'package:ctf_tools/features/stego/pages/text_stego.dart';
 import 'package:ctf_tools/main_layout.dart';
 import 'package:ctf_tools/pages/home_screen.dart';
 import 'package:ctf_tools/pages/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-/// 侧边栏菜单与路由统一配置。
 final List<NavItem> navItems = [
-  // 首页
   NavItem(
-    name: "首页",
-    route: "/",
+    name: '首页',
+    route: '/',
     icon: Icons.dashboard,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const HomeScreen(),
   ),
-
-  // 编码/解码
   NavItem(
-    name: "编码解码",
-    route: "/encoding",
+    name: '编码解码',
+    route: '/encoding',
     icon: Icons.data_array,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const EncodingHubScreen(),
     isContainerOnly: true,
   ),
-  // 1. Base 系列编码 Base64, Base32, Base58, Base85
   NavItem(
-    name: "Base系列",
-    route: "/encoding/base",
+    name: 'Base系列',
+    route: '/encoding/base',
     icon: Icons.numbers,
     builder: (context, state) => BaseCodecScreen(),
   ),
-  // 2. 文本内容编码 URL 编码, HTML 实体编码, Quoted-Printable, Morse Code
   NavItem(
-    name: "文本编码",
-    route: "/encoding/text",
+    name: '文本编码',
+    route: '/encoding/text',
     icon: Icons.text_format,
     builder: (context, state) => TextEncodingScreen(),
   ),
-  // 3. ProtoBuf 编码解码
   NavItem(
-    name: "ProtoBuf",
-    route: "/encoding/protobuf",
+    name: 'ProtoBuf',
+    route: '/encoding/protobuf',
     icon: Icons.library_books,
     builder: (context, state) => ProtobufCoder(),
   ),
-  // 4. 压缩与解压缩	Zlib, Gzip)
   NavItem(
-    name: "压缩/解压",
-    route: "/encoding/compress",
+    name: '压缩/解压',
+    route: '/encoding/compress',
     icon: Icons.compress,
     builder: (context, state) => CompressCoderScreen(),
   ),
-  // 5. 数值与进制转换	BCD 转换, Binary ↔ Hex, 进制互转
   NavItem(
-    name: "数值/进制",
-    route: "/encoding/number",
+    name: '数值/进制',
+    route: '/encoding/number',
     icon: Icons.calculate,
     builder: (context, state) => NumberCoder(),
   ),
-  // 6. 简单替换密码	ROT13, ROT47, 自定义 ROT
   NavItem(
-    name: "替换密码",
-    route: "/encoding/replace",
+    name: '替换密码',
+    route: '/encoding/replace',
     icon: Icons.swap_horiz,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const ReplaceCipherScreen(),
   ),
-
-  // 密码学工具
   NavItem(
-    name: "密码学",
-    route: "/crypto",
+    name: '密码学',
+    route: '/crypto',
     icon: Icons.lock,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const CryptoHubScreen(),
     isContainerOnly: true,
   ),
-  // 1. 经典密码	Caesar, Vigenère, Atbash, Affine, Rail Fence, Baconia
   NavItem(
-    name: "经典密码",
-    route: "/crypto/classical",
+    name: '经典密码',
+    route: '/crypto/classical',
     icon: Icons.history_edu,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const ClassicalCipherScreen(),
   ),
-  // 2. 现代密码	AES/DES/3DES/Blowfish, RSA（含私钥修复）
   NavItem(
-    name: "现代密码",
-    route: "/crypto/modern",
+    name: '现代密码',
+    route: '/crypto/modern',
     icon: Icons.shield,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const ModernCryptoScreen(),
   ),
-  // 3. 哈希计算,识别与爆破	哈希类型识别、爆破
   NavItem(
-    name: "哈希计算",
-    route: "/crypto/hash",
+    name: '哈希计算',
+    route: '/crypto/hash',
     icon: Icons.fingerprint,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const HashToolScreen(),
   ),
-  // 4. 密码分析与辅助工具	XOR 爆破、字频分析、多表替换分析、JWT 操作、PEM/DER 转换
   NavItem(
-    name: "密码分析",
-    route: "/crypto/analysis",
+    name: '密码分析',
+    route: '/crypto/analysis',
     icon: Icons.analytics,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const XorAnalysisScreen(),
   ),
-
-  // 隐写工具
   NavItem(
-    name: "隐写工具",
-    route: "/stego",
+    name: '隐写工具',
+    route: '/stego',
     icon: Icons.hide_image,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const StegoHubScreen(),
     isContainerOnly: true,
   ),
-  // 1. 图像隐写	LSB 提取、zsteg、EXIF 查看、binwalk 扫
   NavItem(
-    name: "图像",
-    route: "/stego/image",
+    name: '图像',
+    route: '/stego/image',
     icon: Icons.image_search,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const ImageStegoScreen(),
   ),
-  // 2. 音视频隐写	频谱图分析、基于文件头的隐藏文件提取
   NavItem(
-    name: "音视频",
-    route: "/stego/audio_video",
+    name: '音视频',
+    route: '/stego/audio_video',
     icon: Icons.music_note,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const AudioVideoStegoScreen(),
   ),
-  // 3. 文本隐写	空格/Tab 隐写（Snow）、零宽字符检测与提取
   NavItem(
-    name: "文本",
-    route: "/stego/text",
+    name: '文本',
+    route: '/stego/text',
     icon: Icons.format_size,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const TextStegoScreen(),
   ),
-
-  // 网络协议
   NavItem(
-    name: "网络协议",
-    route: "/network",
+    name: '网络协议',
+    route: '/network',
     icon: Icons.router,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const NetworkHubScreen(),
     isContainerOnly: true,
   ),
-  // 1. 网络协议交互与模拟	SMTP/FTP/POP3 模拟、HTTP 请求构造器、WebSocket
   NavItem(
-    name: "协议交互",
-    route: "/network/interaction",
+    name: '协议交互',
+    route: '/network/interaction',
     icon: Icons.sync_alt,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const HttpRequestBuilderScreen(),
   ),
-  // 2. 网络探测与信息收集	WHOIS、DNS 查询
   NavItem(
-    name: "信息收集",
-    route: "/network/recon",
+    name: '信息收集',
+    route: '/network/recon',
     icon: Icons.explore,
-    builder: (context, state) => ReconScreen(),
+    builder: (context, state) => const ReconScreen(),
   ),
-  // 3. 流量分析与重组	TCP/UDP 流重组（pcap 解析）
   NavItem(
-    name: "流量分析",
-    route: "/network/traffic",
+    name: '流量分析',
+    route: '/network/traffic',
     icon: Icons.timeline,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const TrafficAnalysisScreen(),
   ),
-  // 4. 网络地址与扫描工具	IPv4/IPv6 格式转换、端口扫描
   NavItem(
-    name: "地址扫描",
-    route: "/network/scanning",
+    name: '地址扫描',
+    route: '/network/scanning',
     icon: Icons.map,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const AddressToolsScreen(),
   ),
-
-  // 二进制分析
   NavItem(
-    name: "二进制分析",
-    route: "/binary",
+    name: '二进制分析',
+    route: '/binary',
     icon: Icons.developer_mode,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const BinaryHubScreen(),
     isContainerOnly: true,
   ),
-  // 1. 二进制文件基础解析	ELF/PE/Mach-O 解析、Canary/PIE/NX 检
   NavItem(
-    name: "文件解析",
-    route: "/binary/info",
+    name: '文件解析',
+    route: '/binary/info',
     icon: Icons.file_open,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const BinaryFileInfoScreen(),
   ),
-  // 2. 静态内容提取	字符串提取（strings）
   NavItem(
-    name: "字符串提取",
-    route: "/binary/strings",
+    name: '字符串提取',
+    route: '/binary/strings',
     icon: Icons.text_snippet,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const StringsExtractorScreen(),
   ),
-  // 3. 反汇编与代码分析	反汇编（Capstone/objdump）、ROP gadget 查找
   NavItem(
-    name: "反汇编",
-    route: "/binary/disasm",
+    name: '反汇编',
+    route: '/binary/disasm',
     icon: Icons.code_off,
-    builder: (context, state) => HomeScreen(),
+    builder: (context, state) => const BinaryDisasmHelperScreen(),
   ),
-  // 4. 漏洞利用辅助	格式化字符串偏移计算、Shellcode 生成
   NavItem(
-    name: "漏洞利用",
-    route: "/binary/exploit",
+    name: '漏洞利用',
+    route: '/binary/exploit',
     icon: Icons.bug_report,
-    builder: (context, state) => SettingsScreen(),
+    builder: (context, state) => const BinaryExploitHelperScreen(),
   ),
-
-  // 下载其他工具
   NavItem(
-    name: "下载",
-    route: "/download",
+    name: '下载',
+    route: '/download',
     icon: Icons.download,
-    builder: (context, state) => SettingsScreen(),
+    builder: (context, state) => const DownloadCenterScreen(),
   ),
-  // 设置
   NavItem(
-    name: "设置",
-    route: "/settings",
+    name: '设置',
+    route: '/settings',
     icon: Icons.settings,
-    builder: (context, state) => SettingsScreen(),
+    builder: (context, state) => const SettingsScreen(),
   ),
 ];
 
-/// 应用全局路由对象。
-///
-/// 使用 `ShellRoute` 包裹统一布局，子路由共享侧边栏。
 GoRouter get getRoute => GoRouter(
-  initialLocation: "/",
+  initialLocation: '/',
   routes: [
     ShellRoute(
       builder: (context, state, child) {

@@ -1,29 +1,24 @@
 import 'dart:convert';
+
 import 'package:ctf_tools/features/network/utils/whois_util.dart';
 import 'package:ctf_tools/shared/widgets/mbutton.dart';
 import 'package:ctf_tools/shared/widgets/show_toast.dart';
+import 'package:ctf_tools/shared/widgets/tool_page_shell.dart';
+import 'package:ctf_tools/shared/widgets/tool_status_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:whois/whois.dart';
-import 'package:ctf_tools/shared/layout/responsive.dart';
 
 class WhoisScreen extends StatefulWidget {
   const WhoisScreen({super.key});
 
   @override
-  State<WhoisScreen> createState() => _WhoisScreen();
+  State<WhoisScreen> createState() => _WhoisScreenState();
 }
 
-class _WhoisScreen extends State<WhoisScreen> {
-  ColorScheme get scheme => Theme.of(context).colorScheme;
-
-  /// 输入框文本控制器。
-  TextEditingController inputController = TextEditingController();
-
-  /// 输出框文本控制器。
-  TextEditingController outputController = TextEditingController();
-
-  /// 是否使用原始 WHOIS 输出模式。
+class _WhoisScreenState extends State<WhoisScreen> {
+  final TextEditingController inputController = TextEditingController();
+  final TextEditingController outputController = TextEditingController();
   bool isRawMode = false;
 
   @override
@@ -35,222 +30,135 @@ class _WhoisScreen extends State<WhoisScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: scheme.surface,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isMobile = Responsive.isMobileWidth(constraints.maxWidth);
-          final content = Column(
+    return Column(
+      children: [
+        ToolSectionCard(
+          title: '查询参数',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 10,
-                runSpacing: 10,
+              const Wrap(
+                spacing: 12,
+                runSpacing: 12,
                 children: [
-                  Text(
-                    "域名 (DOMAIN)",
-                    style: TextStyle(
-                      color: scheme.onSurfaceVariant,
-                      fontSize: 16,
-                    ),
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: scheme.primary.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.all(5),
-                    child: Text(
-                      "INPUT",
-                      style: TextStyle(color: scheme.primary),
-                    ),
-                  ),
+                  ToolStatusChip(label: 'WHOIS Lookup', icon: Icons.search),
                 ],
               ),
-              const SizedBox(height: 20),
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  SizedBox(
-                    width: isMobile ? constraints.maxWidth - 40 : 420,
-                    child: TextField(
-                      controller: inputController,
-                      style: TextStyle(color: scheme.onSurface),
-                      decoration: InputDecoration(
-                        labelText: '输入想要查询的域名...',
-                        labelStyle: TextStyle(color: scheme.onSurfaceVariant),
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                        suffixIcon: inputController.text.isNotEmpty
-                            ? IconButton(
-                                icon: Icon(
-                                  Icons.clear,
-                                  color: scheme.onSurfaceVariant,
-                                ),
-                                onPressed: () {
-                                  inputController.clear();
-                                  setState(() {});
-                                },
-                              )
-                            : null,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                      ),
-                    ),
-                  ),
-                  MElevatedButton(
-                    icon: Icons.search,
-                    text: "查询",
-                    onPressed: () {
-                      _whoisSearch();
-                      setState(() {});
-                    },
-                  ),
-                ],
+              const SizedBox(height: 10),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('原始输出模式'),
+                value: isRawMode,
+                onChanged: (value) => setState(() {
+                  isRawMode = value;
+                }),
               ),
-              const SizedBox(height: 20),
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  Text(
-                    "输出框 (OUTPUT)",
-                    style: TextStyle(
-                      color: scheme.onSurfaceVariant,
-                      fontSize: 16,
-                    ),
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: scheme.secondary.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.all(5),
-                    child: Text(
-                      "RAW OUTPUT",
-                      style: TextStyle(color: scheme.secondary),
-                    ),
-                  ),
-                  Switch(
-                    value: isRawMode,
-                    activeThumbColor: scheme.primary,
-                    activeTrackColor: scheme.primary.withValues(alpha: 0.5),
-                    inactiveThumbColor: scheme.outline,
-                    inactiveTrackColor: scheme.surfaceContainerHighest,
-                    onChanged: (value) {
-                      setState(() {
-                        isRawMode = value;
-                      });
-                    },
-                  ),
-                  MElevatedButton(
-                    icon: Icons.copy,
-                    text: "复制",
-                    onPressed: () => _copyText(outputController.text),
-                  ),
-                  MElevatedButton(
-                    icon: Icons.file_copy,
-                    text: "导出到文件",
-                    onPressed: () => {},
-                  ),
-                  MElevatedButton(
-                    icon: Icons.delete,
-                    text: "清空",
-                    onPressed: _clear,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              if (isMobile)
-                SizedBox(height: 300, child: _buildOutputField())
-              else
-                Expanded(child: _buildOutputField()),
             ],
-          );
-          if (isMobile) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: content,
-            );
-          }
-          return Padding(padding: const EdgeInsets.all(20), child: content);
-        },
-      ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ToolSectionCard(
+          title: '输入域名',
+          trailing: MElevatedButton(
+            icon: Icons.search,
+            text: '查询',
+            onPressed: _whoisSearch,
+          ),
+          child: TextField(
+            controller: inputController,
+            decoration: InputDecoration(
+              labelText: '输入想要查询的域名',
+              prefixIcon: const Icon(Icons.language),
+              suffixIcon: inputController.text.isNotEmpty
+                  ? IconButton(
+                      onPressed: () {
+                        inputController.clear();
+                        setState(() {});
+                      },
+                      icon: const Icon(Icons.clear),
+                    )
+                  : null,
+            ),
+            onChanged: (_) => setState(() {}),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ToolSectionCard(
+          title: '输出',
+          trailing: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ToolStatusChip(
+                label: isRawMode ? 'RAW OUTPUT' : 'FORMATTED',
+                icon: Icons.article_outlined,
+              ),
+              MElevatedButton(
+                icon: Icons.copy,
+                text: '复制',
+                onPressed: () => _copyText(outputController.text),
+              ),
+              MElevatedButton(
+                icon: Icons.delete,
+                text: '清空',
+                onPressed: _clear,
+              ),
+            ],
+          ),
+          child: SizedBox(
+            height: kToolLargeOutputHeight,
+            child: TextField(
+              controller: outputController,
+              maxLines: null,
+              expands: true,
+              textAlignVertical: TextAlignVertical.top,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildOutputField() {
-    return TextField(
-      maxLines: null,
-      expands: true,
-      textAlignVertical: TextAlignVertical.top,
-      textAlign: TextAlign.start,
-      controller: outputController,
-      style: TextStyle(color: scheme.onSurface),
-      decoration: InputDecoration(
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: scheme.outlineVariant),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: scheme.primary, width: 1.5),
-        ),
-      ),
-    );
-  }
-
-  /// 执行 WHOIS 查询并更新输出内容。
   Future<void> _whoisSearch() async {
     final domain = inputController.text.trim();
     if (domain.isEmpty) {
-      showToast("不知道你要查询什么喵", context);
+      showToast('不知道你要查询什么喵', context);
       return;
     }
     try {
-      String result;
-      if (isRawMode) {
-        final tmp = await Whois.lookup(domain);
-        final originalUtf8Bytes = latin1.encode(tmp);
-        result = utf8.decode(originalUtf8Bytes, allowMalformed: true);
-      } else {
-        result = await WhoisUtil.lookupAndFormatChinese(domain);
-      }
+      final result = isRawMode
+          ? utf8.decode(
+              latin1.encode(await Whois.lookup(domain)),
+              allowMalformed: true,
+            )
+          : await WhoisUtil.lookupAndFormatChinese(domain);
       outputController.text = result;
       if (mounted) setState(() {});
     } catch (e) {
-      final errorMessage = "查询出错：$e";
-      outputController.text = errorMessage;
+      outputController.text = '查询出错：$e';
       if (!mounted) return;
-      showToast("查询失败：$e", context);
+      showToast('查询失败：$e', context);
     }
   }
 
-  /// 清理输入输出框
   void _clear() {
     if (inputController.text.isEmpty && outputController.text.isEmpty) {
-      showToast("无内容可清空喵", context);
+      showToast('无内容可清空喵', context);
       return;
     }
     inputController.clear();
     outputController.clear();
-    showToast("已清空喵", context);
+    setState(() {});
+    showToast('已清空喵', context);
   }
 
-  /// 复制文本
   Future<void> _copyText(String text) async {
     if (text.isEmpty) {
-      showToast("无内容可复制喵", context);
+      showToast('无内容可复制喵', context);
       return;
     }
     await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
-    showToast("复制成功喵", context);
+    showToast('复制成功喵', context);
   }
 }

@@ -8,6 +8,6 @@ void main() {
 
     expect(find.text('CTF Tools 控制台'), findsOneWidget);
     expect(find.text('常用流程'), findsOneWidget);
-    expect(find.text('搜索工具：base64 / protobuf / whois ...'), findsOneWidget);
+    expect(find.text('设置'), findsWidgets);
   });
 }

@@ -2,26 +2,25 @@ import 'package:ctf_tools/features/encoding/utils/compress/compress_codec.dart';
 import 'package:ctf_tools/shared/widgets/dropdown_menu.dart';
 import 'package:ctf_tools/shared/widgets/mbutton.dart';
 import 'package:ctf_tools/shared/widgets/show_toast.dart';
+import 'package:ctf_tools/shared/widgets/tool_page_shell.dart';
+import 'package:ctf_tools/shared/widgets/tool_status_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:ctf_tools/shared/layout/responsive.dart';
 
 class CompressCoderScreen extends StatefulWidget {
   const CompressCoderScreen({super.key});
 
   @override
-  State<StatefulWidget> createState() => _CompressCoderScreen();
+  State<CompressCoderScreen> createState() => _CompressCoderScreenState();
 }
 
-class _CompressCoderScreen extends State<CompressCoderScreen> {
-  ColorScheme get scheme => Theme.of(context).colorScheme;
+class _CompressCoderScreenState extends State<CompressCoderScreen> {
   final TextEditingController inputController = TextEditingController();
   final TextEditingController outputController = TextEditingController();
 
   String inputFormatLabel = 'RAW';
   String outputFormatLabel = 'Base64';
   String compressionLevel = '6';
-  String swapTextTemp = '';
 
   static const List<String> _formatItems = ['RAW', 'Base64', 'Hex'];
   static const List<String> _levelItems = [
@@ -46,60 +45,29 @@ class _CompressCoderScreen extends State<CompressCoderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = Responsive.isMobile(context);
-    final scheme = Theme.of(context).colorScheme;
     return DefaultTabController(
       length: 2,
-      child: Scaffold(
-        backgroundColor: scheme.surface,
-        appBar: AppBar(
-          backgroundColor: scheme.surface,
-          title: Text(
-            "Gzip/Zlib 压缩/解压",
-            style: TextStyle(
-              fontSize: isMobile ? 22 : 26,
-              fontWeight: FontWeight.bold,
-              color: scheme.onSurface,
-            ),
-          ),
-          centerTitle: false,
-        ),
-        body: Column(
+      child: ToolPageShell(
+        title: 'Gzip/Zlib 压缩/解压',
+        description: '统一的压缩工具页，支持 RAW / Base64 / Hex 三种输入输出格式。',
+        badge: 'Compression',
+        child: Column(
           children: [
-            const SizedBox(height: 8),
-            TabBar(
-              isScrollable: isMobile,
-              labelColor: scheme.primary,
-              unselectedLabelColor: scheme.onSurfaceVariant,
-              indicatorColor: scheme.primary,
-              tabs: const [
-                Tab(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.folder_zip),
-                      SizedBox(width: 8),
-                      Text("Gzip"),
-                    ],
-                  ),
-                ),
-                Tab(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.zoom_in_map),
-                      SizedBox(width: 8),
-                      Text("Zlib"),
-                    ],
-                  ),
-                ),
-              ],
+            Card(
+              child: TabBar(
+                tabs: const [
+                  Tab(icon: Icon(Icons.folder_zip), text: 'Gzip'),
+                  Tab(icon: Icon(Icons.zoom_in_map), text: 'Zlib'),
+                ],
+              ),
             ),
-            Expanded(
+            const SizedBox(height: kToolSectionGap),
+            SizedBox(
+              height: kToolTabViewportHeight,
               child: TabBarView(
                 children: [
-                  _buildPanel(CompressAlgorithm.gzip, isMobile: isMobile),
-                  _buildPanel(CompressAlgorithm.zlib, isMobile: isMobile),
+                  _buildPanel(CompressAlgorithm.gzip),
+                  _buildPanel(CompressAlgorithm.zlib),
                 ],
               ),
             ),
@@ -109,185 +77,122 @@ class _CompressCoderScreen extends State<CompressCoderScreen> {
     );
   }
 
-  Widget _buildPanel(CompressAlgorithm algorithm, {required bool isMobile}) {
-    final content = Column(
-      children: [
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            Text(
-              "输入格式",
-              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16),
+  Widget _buildPanel(CompressAlgorithm algorithm) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Column(
+        children: [
+          ToolSectionCard(
+            title: '参数',
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                const ToolStatusChip(label: 'RAW / Base64 / Hex', icon: Icons.tune),
+                Text('输入格式'),
+                MDropdownMenu(
+                  initialValue: inputFormatLabel,
+                  items: _formatItems,
+                  onChanged: (value) => setState(() {
+                    inputFormatLabel = value;
+                  }),
+                ),
+                Text('输出格式'),
+                MDropdownMenu(
+                  initialValue: outputFormatLabel,
+                  items: _formatItems,
+                  onChanged: (value) => setState(() {
+                    outputFormatLabel = value;
+                  }),
+                ),
+                Text('压缩级别'),
+                MDropdownMenu(
+                  initialValue: compressionLevel,
+                  items: _levelItems,
+                  onChanged: (value) => setState(() {
+                    compressionLevel = value;
+                  }),
+                ),
+              ],
             ),
-            const SizedBox(width: 6),
-            MDropdownMenu(
-              initialValue: inputFormatLabel,
-              items: _formatItems,
-              onChanged: (value) {
-                setState(() {
-                  inputFormatLabel = value;
-                });
-              },
+          ),
+          const SizedBox(height: kToolSectionGap),
+          ToolSectionCard(
+            title: '输入',
+            trailing: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                MElevatedButton(
+                  icon: Icons.copy,
+                  text: '复制',
+                  onPressed: () => _copyText(inputController.text),
+                ),
+                MElevatedButton(
+                  icon: Icons.delete,
+                  text: '清空',
+                  onPressed: _clear,
+                ),
+              ],
             ),
-            Text(
-              "输出格式",
-              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16),
-            ),
-            const SizedBox(width: 6),
-            MDropdownMenu(
-              initialValue: outputFormatLabel,
-              items: _formatItems,
-              onChanged: (value) {
-                setState(() {
-                  outputFormatLabel = value;
-                });
-              },
-            ),
-            Text(
-              "压缩级别",
-              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16),
-            ),
-            const SizedBox(width: 6),
-            MDropdownMenu(
-              initialValue: compressionLevel,
-              items: _levelItems,
-              onChanged: (value) {
-                setState(() {
-                  compressionLevel = value;
-                });
-              },
-            ),
-            MElevatedButton(
-              icon: Icons.copy,
-              text: "复制输出",
-              onPressed: () => _copyText(outputController.text),
-            ),
-            MElevatedButton(icon: Icons.delete, text: "清空", onPressed: _clear),
-          ],
-        ),
-        const SizedBox(height: 20),
-        Row(
-          children: [
-            Text(
-              "输入框 (INPUT)",
-              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16),
-            ),
-            const SizedBox(width: 12),
-            _tag(
-              inputFormatLabel,
-              scheme.primary.withValues(alpha: 0.18),
-              scheme.primary,
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          maxLines: 7,
-          controller: inputController,
-          style: TextStyle(color: scheme.onSurface),
-          decoration: _textFieldDecoration(),
-        ),
-        const SizedBox(height: 20),
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 12,
-          runSpacing: 10,
-          children: [
-            MElevatedButton(
-              icon: Icons.compress,
-              iconColor: scheme.onSurface,
-              text: "压缩",
-              textColor: scheme.onSurface,
-              onPressed: () => _process(algorithm, false),
-            ),
-            MElevatedButton(
-              icon: Icons.unarchive,
-              iconColor: scheme.onSurface,
-              text: "解压",
-              textColor: scheme.onSurface,
-              onPressed: () => _process(algorithm, true),
-            ),
-            MElevatedButton(
-              icon: Icons.sync_outlined,
-              iconColor: scheme.onSurface,
-              text: "交换",
-              textColor: scheme.onSurface,
-              onPressed: () {
-                setState(() {
-                  swapTextTemp = inputController.text;
+            child: TextField(controller: inputController, maxLines: 8),
+          ),
+          const SizedBox(height: kToolSectionGap),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              MElevatedButton(
+                icon: Icons.compress,
+                text: '压缩',
+                onPressed: () => _process(algorithm, false),
+              ),
+              MElevatedButton(
+                icon: Icons.unarchive,
+                text: '解压',
+                onPressed: () => _process(algorithm, true),
+              ),
+              MElevatedButton(
+                icon: Icons.swap_horiz,
+                text: '交换',
+                onPressed: () {
+                  final temp = inputController.text;
                   inputController.text = outputController.text;
-                  outputController.text = swapTextTemp;
-                });
-              },
+                  outputController.text = temp;
+                  setState(() {});
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: kToolSectionGap),
+          ToolSectionCard(
+            title: '输出',
+            trailing: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ToolStatusChip(label: outputFormatLabel, icon: Icons.output),
+                MElevatedButton(
+                  icon: Icons.copy,
+                  text: '复制',
+                  onPressed: () => _copyText(outputController.text),
+                ),
+              ],
             ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        Row(
-          children: [
-            Text(
-              "输出框 (OUTPUT)",
-              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16),
+            child: SizedBox(
+              height: kToolOutputHeight,
+              child: TextField(
+                controller: outputController,
+                maxLines: null,
+                expands: true,
+                textAlignVertical: TextAlignVertical.top,
+              ),
             ),
-            const SizedBox(width: 12),
-            _tag(
-              outputFormatLabel,
-              scheme.secondary.withValues(alpha: 0.18),
-              scheme.secondary,
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        if (isMobile)
-          SizedBox(height: 260, child: _buildOutputField())
-        else
-          Expanded(child: _buildOutputField()),
-      ],
-    );
-    if (isMobile) {
-      return SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: content,
-      );
-    }
-    return Padding(padding: const EdgeInsets.all(20), child: content);
-  }
-
-  Widget _buildOutputField() {
-    return TextField(
-      maxLines: null,
-      expands: true,
-      textAlignVertical: TextAlignVertical.top,
-      controller: outputController,
-      style: TextStyle(color: scheme.onSurface),
-      decoration: _textFieldDecoration(),
-    );
-  }
-
-  InputDecoration _textFieldDecoration() {
-    final scheme = Theme.of(context).colorScheme;
-    return InputDecoration(
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: scheme.outlineVariant),
+          ),
+        ],
       ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: scheme.primary, width: 1.5),
-      ),
-    );
-  }
-
-  Widget _tag(String text, Color bgColor, Color textColor) {
-    return Container(
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      padding: const EdgeInsets.all(5),
-      child: Text(text, style: TextStyle(color: textColor)),
     );
   }
 
@@ -295,7 +200,7 @@ class _CompressCoderScreen extends State<CompressCoderScreen> {
     try {
       final inputFormat = _mapFormat(inputFormatLabel);
       final outputFormat = _mapFormat(outputFormatLabel);
-      final result = isDecompress
+      outputController.text = isDecompress
           ? CompressCodec.decompress(
               input: inputController.text,
               algorithm: algorithm,
@@ -309,46 +214,39 @@ class _CompressCoderScreen extends State<CompressCoderScreen> {
               outputFormat: outputFormat,
               level: int.parse(compressionLevel),
             );
-      setState(() {
-        outputController.text = result;
-      });
+      setState(() {});
     } catch (e) {
-      showToast("${isDecompress ? '解压' : '压缩'}失败: $e", context);
+      showToast('${isDecompress ? '解压' : '压缩'}失败: $e', context);
     }
   }
 
   CompressDataFormat _mapFormat(String text) {
-    switch (text) {
-      case 'RAW':
-        return CompressDataFormat.raw;
-      case 'Base64':
-        return CompressDataFormat.base64;
-      case 'Hex':
-        return CompressDataFormat.hex;
-      default:
-        throw FormatException("不支持的数据格式: $text");
-    }
+    return switch (text) {
+      'RAW' => CompressDataFormat.raw,
+      'Base64' => CompressDataFormat.base64,
+      'Hex' => CompressDataFormat.hex,
+      _ => throw FormatException('不支持的数据格式: $text'),
+    };
   }
 
   void _clear() {
     if (inputController.text.isEmpty && outputController.text.isEmpty) {
-      showToast("无内容可清空喵", context);
+      showToast('无内容可清空喵', context);
       return;
     }
-    setState(() {
-      inputController.clear();
-      outputController.clear();
-    });
-    showToast("已清空喵", context);
+    inputController.clear();
+    outputController.clear();
+    setState(() {});
+    showToast('已清空喵', context);
   }
 
   Future<void> _copyText(String text) async {
     if (text.isEmpty) {
-      showToast("输出为空，无法复制", context);
+      showToast('输出为空，无法复制', context);
       return;
     }
     await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
-    showToast("已复制到剪贴板", context);
+    showToast('已复制到剪贴板', context);
   }
 }

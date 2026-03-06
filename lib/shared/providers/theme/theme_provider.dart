@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 
 /// 全局主题状态管理器。
 class ThemeProvider with ChangeNotifier {
+  static const int _defaultColorIndex = 0;
+
   bool _isDark = false;
-  int _colorIndex = 0;
+  int _colorIndex = _defaultColorIndex;
 
   /// 当前是否为暗色模式。
   bool get isDark => _isDark;
@@ -31,6 +33,13 @@ class ThemeProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// 显式设置暗色模式。
+  void setDarkMode(bool value) {
+    if (_isDark == value) return;
+    _isDark = value;
+    notifyListeners();
+  }
+
   /// 根据索引切换主题色。
   ///
   /// 当 [index] 越界时抛出 [RangeError]。
@@ -40,6 +49,15 @@ class ThemeProvider with ChangeNotifier {
     }
     if (_colorIndex == index) return;
     _colorIndex = index;
+    notifyListeners();
+  }
+
+  /// 恢复默认主题配置。
+  void resetAppearance() {
+    final changed = _isDark || _colorIndex != _defaultColorIndex;
+    if (!changed) return;
+    _isDark = false;
+    _colorIndex = _defaultColorIndex;
     notifyListeners();
   }
 }
