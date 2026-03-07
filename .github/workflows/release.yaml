@@ -1,0 +1,232 @@
+name: release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  attestations: write
+  contents: write
+  id-token: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      html_url: ${{ steps.release.outputs.html_url }}
+    steps:
+      - name: Run release-please
+        id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  build-android:
+    needs: release
+    if: ${{ needs.release.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Android artifacts
+        run: |
+          flutter build apk --release
+          flutter build appbundle --release
+
+      - name: Prepare Android artifacts
+        run: |
+          mkdir -p release-artifacts
+          cp build/app/outputs/flutter-apk/app-release.apk release-artifacts/ctf_tools-${{ needs.release.outputs.tag_name }}-android.apk
+          cp build/app/outputs/bundle/release/app-release.aab release-artifacts/ctf_tools-${{ needs.release.outputs.tag_name }}-android.aab
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-release
+          path: release-artifacts/*
+
+  build-linux:
+    needs: release
+    if: ${{ needs.release.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux build dependencies
+        run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Enable Linux desktop
+        run: flutter config --enable-linux-desktop
+
+      - name: Build Linux bundle
+        run: flutter build linux --release
+
+      - name: Archive Linux bundle
+        run: |
+          mkdir -p release-artifacts
+          cd build/linux/x64/release/bundle
+          zip -r ../../../../../release-artifacts/ctf_tools-${{ needs.release.outputs.tag_name }}-linux-x64.zip .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-release
+          path: release-artifacts/*
+
+  build-web:
+    needs: release
+    if: ${{ needs.release.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Enable web
+        run: flutter config --enable-web
+
+      - name: Build web bundle
+        run: flutter build web --release
+
+      - name: Archive web bundle
+        run: |
+          mkdir -p release-artifacts
+          cd build/web
+          zip -r ../../release-artifacts/ctf_tools-${{ needs.release.outputs.tag_name }}-web.zip .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-release
+          path: release-artifacts/*
+
+  build-windows:
+    needs: release
+    if: ${{ needs.release.outputs.release_created == 'true' }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Build Windows bundle
+        run: flutter build windows --release
+
+      - name: Archive Windows bundle
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path release-artifacts | Out-Null
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath release-artifacts/ctf_tools-${{ needs.release.outputs.tag_name }}-windows-x64.zip -Force
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: release-artifacts/*
+
+  build-apple:
+    needs: release
+    if: ${{ needs.release.outputs.release_created == 'true' }}
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Enable Apple platforms
+        run: |
+          flutter config --enable-macos-desktop
+          flutter config --enable-ios
+
+      - name: Build macOS app
+        run: flutter build macos --release
+
+      - name: Build iOS app without codesign
+        run: flutter build ios --release --no-codesign
+
+      - name: Archive Apple bundles
+        run: |
+          mkdir -p release-artifacts
+          APP_PATH=$(find build/macos/Build/Products/Release -maxdepth 1 -name '*.app' -print -quit)
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" release-artifacts/ctf_tools-${{ needs.release.outputs.tag_name }}-macos.zip
+          ditto -c -k --sequesterRsrc --keepParent build/ios/iphoneos/Runner.app release-artifacts/ctf_tools-${{ needs.release.outputs.tag_name }}-ios-unsigned.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apple-release
+          path: release-artifacts/*
+
+  upload-release-assets:
+    needs:
+      - release
+      - build-android
+      - build-linux
+      - build-web
+      - build-windows
+      - build-apple
+    if: ${{ needs.release.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+
+      - name: Attest GitHub release artifacts
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: release-artifacts/*/*
+
+      - name: Upload assets to GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ needs.release.outputs.tag_name }} release-artifacts/*/* --clobber
