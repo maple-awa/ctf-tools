@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:ctf_tools/shared/widgets/code_editor.dart';
-import 'dart:convert';
 
 class UrlCodecScreen extends StatefulWidget {
   const UrlCodecScreen({super.key});
@@ -18,11 +17,11 @@ class _UrlCodecScreenState extends State<UrlCodecScreen> {
   void _encode() {
     String input = _inputController.text;
     String encoded = Uri.encodeComponent(input);
-    
+
     if (_isDoubleEncode) {
       encoded = Uri.encodeComponent(encoded);
     }
-    
+
     setState(() {
       _outputController.text = encoded;
       _isEncoded = true;
@@ -33,11 +32,11 @@ class _UrlCodecScreenState extends State<UrlCodecScreen> {
     try {
       String input = _inputController.text;
       String decoded = Uri.decodeComponent(input);
-      
+
       if (_isDoubleEncode && _isEncoded) {
         decoded = Uri.decodeComponent(decoded);
       }
-      
+
       setState(() {
         _outputController.text = decoded;
         _isEncoded = false;
@@ -61,7 +60,10 @@ class _UrlCodecScreenState extends State<UrlCodecScreen> {
     if (_outputController.text.isNotEmpty) {
       // Clipboard.setData(ClipboardData(text: _outputController.text));
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已复制到剪贴板'), duration: Duration(seconds: 1)),
+        const SnackBar(
+          content: Text('已复制到剪贴板'),
+          duration: Duration(seconds: 1),
+        ),
       );
     }
   }
@@ -119,11 +121,7 @@ class _UrlCodecScreenState extends State<UrlCodecScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          CodeEditor(
-            controller: _inputController,
-            label: '输入',
-            height: 200,
-          ),
+          CodeEditor(controller: _inputController, label: '输入', height: 200),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -133,7 +131,10 @@ class _UrlCodecScreenState extends State<UrlCodecScreen> {
                 icon: const Icon(Icons.lock),
                 label: const Text('编码'),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -142,7 +143,10 @@ class _UrlCodecScreenState extends State<UrlCodecScreen> {
                 icon: const Icon(Icons.lock_open),
                 label: const Text('解码'),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
                 ),
               ),
             ],

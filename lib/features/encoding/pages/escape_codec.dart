@@ -16,10 +16,12 @@ class _EscapeCodecScreenState extends State<EscapeCodecScreen> {
   String _encodeURI(String input) {
     // 不编码 ASCII 字母数字字符和 - _ . ! ~ * ' ( )
     return input.replaceAllMapped(
-      RegExp(r'[^a-zA-Z0-9\-_.!~*'()"@#\$&*+,;=/:?%\[\]{}]'),
+      RegExp(r"[^a-zA-Z0-9\-_.!~*'()@#\$&*+,;=/:?%\[\]{}]"),
       (match) {
         final char = match.group(0)!;
-        return char.codeUnits.map((c) => '%${c.toRadixString(16).toUpperCase().padLeft(2, '0')}').join();
+        return char.codeUnits
+            .map((c) => '%${c.toRadixString(16).toUpperCase().padLeft(2, '0')}')
+            .join();
       },
     );
   }
@@ -36,18 +38,17 @@ class _EscapeCodecScreenState extends State<EscapeCodecScreen> {
     }
   }
 
-  String _encodeURI_Component(String input) {
+  String _encodeUriComponent(String input) {
     // 编码除了 ASCII 字母数字字符和 - _ . ! ~ * ' ( ) 之外的所有字符
-    return input.replaceAllMapped(
-      RegExp(r'[^a-zA-Z0-9\-_.!~*'()]'),
-      (match) {
-        final char = match.group(0)!;
-        return char.codeUnits.map((c) => '%${c.toRadixString(16).toUpperCase().padLeft(2, '0')}').join();
-      },
-    );
+    return input.replaceAllMapped(RegExp(r"[^a-zA-Z0-9\-_.!~*'()]"), (match) {
+      final char = match.group(0)!;
+      return char.codeUnits
+          .map((c) => '%${c.toRadixString(16).toUpperCase().padLeft(2, '0')}')
+          .join();
+    });
   }
 
-  String _decodeURI_Component(String input) {
+  String _decodeUriComponent(String input) {
     try {
       final regex = RegExp(r'%([0-9A-Fa-f]{2})');
       return input.replaceAllMapped(regex, (match) {
@@ -61,23 +62,20 @@ class _EscapeCodecScreenState extends State<EscapeCodecScreen> {
 
   String _encodeJavaScript(String input) {
     // JavaScript escape 编码
-    return input.replaceAllMapped(
-      RegExp(r'[^\x00-\x7F]|\\|\'|\"'),
-      (match) {
-        final char = match.group(0)!;
-        final code = char.codeUnitAt(0);
-        if (code > 127) {
-          return '\\x${code.toRadixString(16).toUpperCase().padLeft(2, '0')}';
-        } else if (char == '\\') {
-          return '\\\\';
-        } else if (char == '\'') {
-          return '\\\'';
-        } else if (char == '\"') {
-          return '\\\"';
-        }
-        return char;
-      },
-    );
+    return input.replaceAllMapped(RegExp(r'''[^\x00-\x7F]|\\|'|"'''), (match) {
+      final char = match.group(0)!;
+      final code = char.codeUnitAt(0);
+      if (code > 127) {
+        return '\\x${code.toRadixString(16).toUpperCase().padLeft(2, '0')}';
+      } else if (char == '\\') {
+        return '\\\\';
+      } else if (char == '\'') {
+        return '\\\'';
+      } else if (char == '"') {
+        return '\\"';
+      }
+      return char;
+    });
   }
 
   String _decodeJavaScript(String input) {
@@ -89,9 +87,10 @@ class _EscapeCodecScreenState extends State<EscapeCodecScreen> {
         (match) => String.fromCharCode(int.parse(match.group(1)!, radix: 16)),
       );
       // 解码转义字符
-      result = result.replaceAll('\\\\', '\\')
-                      .replaceAll("\\'", "'")
-                      .replaceAll('\\"', '"');
+      result = result
+          .replaceAll('\\\\', '\\')
+          .replaceAll("\\'", "'")
+          .replaceAll('\\"', '"');
       return result;
     } catch (e) {
       return '解码失败：${e.toString()}';
@@ -108,10 +107,14 @@ class _EscapeCodecScreenState extends State<EscapeCodecScreen> {
           result = _mode == 'encode' ? _encodeURI(input) : _decodeURI(input);
           break;
         case 'encodeURIComponent':
-          result = _mode == 'encode' ? _encodeURI_Component(input) : _decodeURI_Component(input);
+          result = _mode == 'encode'
+              ? _encodeUriComponent(input)
+              : _decodeUriComponent(input);
           break;
         case 'escape':
-          result = _mode == 'encode' ? _encodeJavaScript(input) : _decodeJavaScript(input);
+          result = _mode == 'encode'
+              ? _encodeJavaScript(input)
+              : _decodeJavaScript(input);
           break;
       }
 
@@ -137,7 +140,10 @@ class _EscapeCodecScreenState extends State<EscapeCodecScreen> {
   void _copyOutput() {
     if (_outputController.text.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已复制到剪贴板'), duration: Duration(seconds: 1)),
+        const SnackBar(
+          content: Text('已复制到剪贴板'),
+          duration: Duration(seconds: 1),
+        ),
       );
     }
   }
@@ -169,15 +175,24 @@ class _EscapeCodecScreenState extends State<EscapeCodecScreen> {
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _escapeType,
+                          initialValue: _escapeType,
                           decoration: const InputDecoration(
                             labelText: '编码类型',
                             border: OutlineInputBorder(),
                           ),
                           items: const [
-                            DropdownMenuItem(value: 'encodeURI', child: Text('encodeURI')),
-                            DropdownMenuItem(value: 'encodeURIComponent', child: Text('encodeURIComponent')),
-                            DropdownMenuItem(value: 'escape', child: Text('escape (Legacy)')),
+                            DropdownMenuItem(
+                              value: 'encodeURI',
+                              child: Text('encodeURI'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'encodeURIComponent',
+                              child: Text('encodeURIComponent'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'escape',
+                              child: Text('escape (Legacy)'),
+                            ),
                           ],
                           onChanged: (value) {
                             setState(() {
@@ -189,14 +204,20 @@ class _EscapeCodecScreenState extends State<EscapeCodecScreen> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _mode,
+                          initialValue: _mode,
                           decoration: const InputDecoration(
                             labelText: '模式',
                             border: OutlineInputBorder(),
                           ),
                           items: const [
-                            DropdownMenuItem(value: 'encode', child: Text('编码')),
-                            DropdownMenuItem(value: 'decode', child: Text('解码')),
+                            DropdownMenuItem(
+                              value: 'encode',
+                              child: Text('编码'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'decode',
+                              child: Text('解码'),
+                            ),
                           ],
                           onChanged: (value) {
                             setState(() {
@@ -229,11 +250,7 @@ class _EscapeCodecScreenState extends State<EscapeCodecScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          CodeEditor(
-            controller: _inputController,
-            label: '输入',
-            height: 200,
-          ),
+          CodeEditor(controller: _inputController, label: '输入', height: 200),
           const SizedBox(height: 16),
           Center(
             child: ElevatedButton.icon(
@@ -241,7 +258,10 @@ class _EscapeCodecScreenState extends State<EscapeCodecScreen> {
               icon: Icon(_mode == 'encode' ? Icons.lock : Icons.lock_open),
               label: Text(_mode == 'encode' ? '编码' : '解码'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 48,
+                  vertical: 16,
+                ),
               ),
             ),
           ),

@@ -1,7 +1,3 @@
-import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 /// 字体配置模型
 class FontConfig {
   final String name;
@@ -205,7 +201,8 @@ class EditorConfig {
       tabSize: tabSize ?? this.tabSize,
       theme: theme ?? this.theme,
       highlightCurrentLine: highlightCurrentLine ?? this.highlightCurrentLine,
-      highlightMatchingBrackets: highlightMatchingBrackets ?? this.highlightMatchingBrackets,
+      highlightMatchingBrackets:
+          highlightMatchingBrackets ?? this.highlightMatchingBrackets,
       renderWhitespace: renderWhitespace ?? this.renderWhitespace,
       bracketPairGuides: bracketPairGuides ?? this.bracketPairGuides,
     );
@@ -235,7 +232,8 @@ class EditorConfig {
       tabSize: json['tabSize'] as int? ?? 2,
       theme: json['theme'] as String? ?? 'default',
       highlightCurrentLine: json['highlightCurrentLine'] as bool? ?? true,
-      highlightMatchingBrackets: json['highlightMatchingBrackets'] as bool? ?? true,
+      highlightMatchingBrackets:
+          json['highlightMatchingBrackets'] as bool? ?? true,
       renderWhitespace: json['renderWhitespace'] as bool? ?? false,
       bracketPairGuides: json['bracketPairGuides'] as bool? ?? true,
     );
@@ -418,7 +416,7 @@ class AppConfig {
     required this.configVersion,
   });
 
-  static const AppConfig defaultConfig = AppConfig(
+  static final AppConfig defaultConfig = AppConfig(
     language: 'zh_CN',
     font: FontConfig.defaultFont,
     layout: LayoutConfig.defaultLayout,
@@ -476,10 +474,18 @@ class AppConfig {
     return AppConfig(
       language: json['language'] as String? ?? 'zh_CN',
       font: FontConfig.fromJson(json['font'] as Map<String, dynamic>? ?? {}),
-      layout: LayoutConfig.fromJson(json['layout'] as Map<String, dynamic>? ?? {}),
-      editor: EditorConfig.fromJson(json['editor'] as Map<String, dynamic>? ?? {}),
-      toolPrefs: ToolPreferences.fromJson(json['toolPrefs'] as Map<String, dynamic>? ?? {}),
-      uiConfig: UIConfig.fromJson(json['uiConfig'] as Map<String, dynamic>? ?? {}),
+      layout: LayoutConfig.fromJson(
+        json['layout'] as Map<String, dynamic>? ?? {},
+      ),
+      editor: EditorConfig.fromJson(
+        json['editor'] as Map<String, dynamic>? ?? {},
+      ),
+      toolPrefs: ToolPreferences.fromJson(
+        json['toolPrefs'] as Map<String, dynamic>? ?? {},
+      ),
+      uiConfig: UIConfig.fromJson(
+        json['uiConfig'] as Map<String, dynamic>? ?? {},
+      ),
       autoSave: json['autoSave'] as bool? ?? true,
       exportPath: json['exportPath'] as String? ?? '',
       lastModified: json['lastModified'] != null

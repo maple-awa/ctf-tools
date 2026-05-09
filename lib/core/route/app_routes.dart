@@ -292,7 +292,7 @@ final List<NavItem> navItems = [
   NavItem(
     name: 'XXE 利用',
     route: '/network/xxe',
-    icon: Icons.xml,
+    icon: Icons.code,
     builder: (context, state) => const XXEGeneratorScreen(),
   ),
   NavItem(
@@ -367,12 +367,6 @@ final List<NavItem> navItems = [
     route: '/settings/config',
     icon: Icons.tune,
     builder: (context, state) => const AppConfigScreen(),
-  ),
-  NavItem(
-    name: '下载',
-    route: '/download',
-    icon: Icons.download,
-    builder: (context, state) => const DownloadCenterScreen(),
   ),
 ];
 

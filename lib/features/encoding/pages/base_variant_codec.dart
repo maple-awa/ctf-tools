@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ctf_tools/shared/widgets/code_editor.dart';
-import 'package:base_x/base_x.dart';
+import 'dart:convert';
 
 class BaseVariantCodecScreen extends StatefulWidget {
   const BaseVariantCodecScreen({super.key});
@@ -14,11 +14,6 @@ class _BaseVariantCodecScreenState extends State<BaseVariantCodecScreen> {
   final TextEditingController _outputController = TextEditingController();
   String _baseType = 'base64';
   String _mode = 'encode';
-
-  static const base16Alphabet = '0123456789ABCDEF';
-  static const base32Alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-  static const base64Alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-  static const base64UrlAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
 
   final base16Encoder = Base16Codec();
   final base32Encoder = Base32Codec();
@@ -72,16 +67,24 @@ class _BaseVariantCodecScreenState extends State<BaseVariantCodecScreen> {
 
       switch (_baseType) {
         case 'base16':
-          result = _mode == 'encode' ? _encodeBase16(input) : _decodeBase16(input);
+          result = _mode == 'encode'
+              ? _encodeBase16(input)
+              : _decodeBase16(input);
           break;
         case 'base32':
-          result = _mode == 'encode' ? _encodeBase32(input) : _decodeBase32(input);
+          result = _mode == 'encode'
+              ? _encodeBase32(input)
+              : _decodeBase32(input);
           break;
         case 'base64':
-          result = _mode == 'encode' ? _encodeBase64(input, false) : _decodeBase64(input, false);
+          result = _mode == 'encode'
+              ? _encodeBase64(input, false)
+              : _decodeBase64(input, false);
           break;
         case 'base64url':
-          result = _mode == 'encode' ? _encodeBase64(input, true) : _decodeBase64(input, true);
+          result = _mode == 'encode'
+              ? _encodeBase64(input, true)
+              : _decodeBase64(input, true);
           break;
       }
 
@@ -105,7 +108,10 @@ class _BaseVariantCodecScreenState extends State<BaseVariantCodecScreen> {
   void _copyOutput() {
     if (_outputController.text.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已复制到剪贴板'), duration: Duration(seconds: 1)),
+        const SnackBar(
+          content: Text('已复制到剪贴板'),
+          duration: Duration(seconds: 1),
+        ),
       );
     }
   }
@@ -137,16 +143,28 @@ class _BaseVariantCodecScreenState extends State<BaseVariantCodecScreen> {
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _baseType,
+                          initialValue: _baseType,
                           decoration: const InputDecoration(
                             labelText: '编码类型',
                             border: OutlineInputBorder(),
                           ),
                           items: const [
-                            DropdownMenuItem(value: 'base16', child: Text('Base16 (Hex)')),
-                            DropdownMenuItem(value: 'base32', child: Text('Base32')),
-                            DropdownMenuItem(value: 'base64', child: Text('Base64')),
-                            DropdownMenuItem(value: 'base64url', child: Text('Base64Url')),
+                            DropdownMenuItem(
+                              value: 'base16',
+                              child: Text('Base16 (Hex)'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'base32',
+                              child: Text('Base32'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'base64',
+                              child: Text('Base64'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'base64url',
+                              child: Text('Base64Url'),
+                            ),
                           ],
                           onChanged: (value) {
                             setState(() {
@@ -158,14 +176,20 @@ class _BaseVariantCodecScreenState extends State<BaseVariantCodecScreen> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _mode,
+                          initialValue: _mode,
                           decoration: const InputDecoration(
                             labelText: '模式',
                             border: OutlineInputBorder(),
                           ),
                           items: const [
-                            DropdownMenuItem(value: 'encode', child: Text('编码')),
-                            DropdownMenuItem(value: 'decode', child: Text('解码')),
+                            DropdownMenuItem(
+                              value: 'encode',
+                              child: Text('编码'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'decode',
+                              child: Text('解码'),
+                            ),
                           ],
                           onChanged: (value) {
                             setState(() {
@@ -198,11 +222,7 @@ class _BaseVariantCodecScreenState extends State<BaseVariantCodecScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          CodeEditor(
-            controller: _inputController,
-            label: '输入',
-            height: 200,
-          ),
+          CodeEditor(controller: _inputController, label: '输入', height: 200),
           const SizedBox(height: 16),
           Center(
             child: ElevatedButton.icon(
@@ -210,7 +230,10 @@ class _BaseVariantCodecScreenState extends State<BaseVariantCodecScreen> {
               icon: Icon(_mode == 'encode' ? Icons.lock : Icons.lock_open),
               label: Text(_mode == 'encode' ? '编码' : '解码'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 48,
+                  vertical: 16,
+                ),
               ),
             ),
           ),
@@ -236,7 +259,9 @@ class _BaseVariantCodecScreenState extends State<BaseVariantCodecScreen> {
 
 class Base16Codec {
   String encode(List<int> bytes) {
-    return bytes.map((b) => b.toRadixString(16).toUpperCase().padLeft(2, '0')).join();
+    return bytes
+        .map((b) => b.toRadixString(16).toUpperCase().padLeft(2, '0'))
+        .join();
   }
 
   List<int> decode(String input) {
@@ -255,49 +280,49 @@ class Base32Codec {
     var result = '';
     var buffer = 0;
     var bitsLeft = 0;
-    
+
     for (var byte in bytes) {
       buffer = (buffer << 8) | byte;
       bitsLeft += 8;
-      
+
       while (bitsLeft >= 5) {
         bitsLeft -= 5;
         result += alphabet[(buffer >> bitsLeft) & 0x1F];
       }
     }
-    
+
     if (bitsLeft > 0) {
       result += alphabet[(buffer << (5 - bitsLeft)) & 0x1F];
     }
-    
+
     while (result.length % 8 != 0) {
       result += '=';
     }
-    
+
     return result;
   }
 
   List<int> decode(String input) {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
     final cleaned = input.replaceAll('=', '').toUpperCase();
-    
+
     var buffer = 0;
     var bitsLeft = 0;
     final bytes = <int>[];
-    
+
     for (var char in cleaned.split('')) {
       final index = alphabet.indexOf(char);
       if (index == -1) continue;
-      
+
       buffer = (buffer << 5) | index;
       bitsLeft += 5;
-      
+
       if (bitsLeft >= 8) {
         bitsLeft -= 8;
         bytes.add((buffer >> bitsLeft) & 0xFF);
       }
     }
-    
+
     return bytes;
   }
 }

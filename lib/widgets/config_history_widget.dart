@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:ctf_tools/shared/providers/config/config_provider.dart';
-import 'package:ctf_tools/shared/models/app_config.dart';
 import 'package:intl/intl.dart';
 
 /// 配置历史组件 - 追踪配置变更历史
@@ -47,7 +44,7 @@ class _ConfigHistoryWidgetState extends State<ConfigHistoryWidget> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -83,7 +80,11 @@ class _ConfigHistoryWidgetState extends State<ConfigHistoryWidget> {
                   padding: const EdgeInsets.all(32),
                   child: Column(
                     children: [
-                      Icon(Icons.history_toggle_off, size: 48, color: scheme.onSurfaceVariant),
+                      Icon(
+                        Icons.history_toggle_off,
+                        size: 48,
+                        color: scheme.onSurfaceVariant,
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         '暂无配置历史记录',
@@ -98,7 +99,7 @@ class _ConfigHistoryWidgetState extends State<ConfigHistoryWidget> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _history.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
+                separatorBuilder: (_, _) => const Divider(height: 1),
                 itemBuilder: (context, index) {
                   final item = _history[index];
                   return ListTile(
@@ -135,14 +136,14 @@ class _ConfigHistoryWidgetState extends State<ConfigHistoryWidget> {
     if (action.contains('布局')) return Icons.grid_view;
     if (action.contains('编辑器')) return Icons.code;
     if (action.contains('导入')) return Icons.import_contacts;
-    if (action.contains('导出')) return Icons.export;
+    if (action.contains('导出')) return Icons.file_upload;
     return Icons.settings;
   }
 
   String _formatTime(DateTime time) {
     final now = DateTime.now();
     final diff = now.difference(time);
-    
+
     if (diff.inMinutes < 1) {
       return '刚刚';
     } else if (diff.inHours < 1) {

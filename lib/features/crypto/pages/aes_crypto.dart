@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:ctf_tools/shared/widgets/code_editor.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
-import 'package:pointycastle/export.dart';
+import 'dart:math';
+import 'dart:typed_data';
+import 'package:pointycastle/export.dart' as pc;
 
 class AesCryptoScreen extends StatefulWidget {
   const AesCryptoScreen({super.key});
@@ -16,34 +18,20 @@ class _AesCryptoScreenState extends State<AesCryptoScreen> {
   final TextEditingController _keyController = TextEditingController();
   final TextEditingController _ivController = TextEditingController();
   final TextEditingController _outputController = TextEditingController();
-  
+
   String _mode = 'CBC';
   String _padding = 'PKCS7';
   String _keySize = '128';
   String _operation = 'encrypt';
 
-  List<int> _padData(List<int> data, int blockSize) {
-    final paddingLength = blockSize - (data.length % blockSize);
-    return data + List.filled(paddingLength, paddingLength);
-  }
-
-  List<int> _unpadData(List<int> data) {
-    if (data.isEmpty) return data;
-    final paddingLength = data.last;
-    if (paddingLength > data.length || paddingLength == 0) {
-      throw Exception('Invalid padding');
-    }
-    return data.sublist(0, data.length - paddingLength);
-  }
-
   List<int> _generateKey() {
     final keyBytes = utf8.encode(_keyController.text);
     final keySize = int.parse(_keySize);
-    
+
     if (keyBytes.length >= keySize ~/ 8) {
       return keyBytes.sublist(0, keySize ~/ 8);
     }
-    
+
     // 如果密钥太短，用 SHA256 扩展
     final hash = sha256.convert(keyBytes).bytes;
     return hash.sublist(0, keySize ~/ 8);
@@ -62,58 +50,54 @@ class _AesCryptoScreenState extends State<AesCryptoScreen> {
     return List<int>.generate(16, (_) => random.nextInt(256));
   }
 
+  pc.PaddedBlockCipher _buildCipher(
+    bool forEncryption,
+    List<int> key,
+    List<int> iv,
+  ) {
+    final engine = _mode == 'ECB'
+        ? pc.ECBBlockCipher(pc.AESEngine())
+        : pc.CBCBlockCipher(pc.AESEngine());
+    final cipher = pc.PaddedBlockCipherImpl(pc.PKCS7Padding(), engine);
+    final keyParam = pc.KeyParameter(Uint8List.fromList(key));
+    final params = _mode == 'ECB'
+        ? pc.PaddedBlockCipherParameters<pc.KeyParameter, Null>(keyParam, null)
+        : pc.PaddedBlockCipherParameters<
+            pc.ParametersWithIV<pc.KeyParameter>,
+            Null
+          >(
+            pc.ParametersWithIV<pc.KeyParameter>(
+              keyParam,
+              Uint8List.fromList(iv),
+            ),
+            null,
+          );
+    cipher.init(forEncryption, params);
+    return cipher;
+  }
+
   List<int> _aesEncrypt(List<int> data, List<int> key, List<int> iv) {
-    final paddedData = _padData(data, 16);
-    
-    final cipher = PaddedBlockCipher(
-      BlockCipher('AES/${_mode.toUpperCase()}'),
-      BlockCipherPadding('PKCS7'),
-    );
-    
-    cipher.init(true, KeyParameter(key), ParametersWithIV(null, iv));
-    
-    final output = <int>[];
-    var offset = 0;
-    while (offset < paddedData.length) {
-      final processed = cipher.process(paddedData.sublist(offset, offset + 16));
-    offset += 16;
-      output.addAll(processed);
-    }
-    
-    return output;
+    return _buildCipher(true, key, iv).process(Uint8List.fromList(data));
   }
 
   List<int> _aesDecrypt(List<int> data, List<int> key, List<int> iv) {
-    final cipher = PaddedBlockCipher(
-      BlockCipher('AES/${_mode.toUpperCase()}'),
-      BlockCipherPadding('PKCS7'),
-    );
-    
-    cipher.init(false, KeyParameter(key), ParametersWithIV(null, iv));
-    
-    final output = <int>[];
-    var offset = 0;
-    while (offset < data.length) {
-      final chunkSize = (data.length - offset < 16) ? data.length - offset : 16;
-      final processed = cipher.process(data.sublist(offset, offset + chunkSize));
-      offset += chunkSize;
-      output.addAll(processed);
-    }
-    
-    return _unpadData(output);
+    return _buildCipher(false, key, iv).process(Uint8List.fromList(data));
   }
 
   void _process() {
     try {
-      final inputData = utf8.encode(_inputController.text);
+      final inputData = _operation == 'encrypt'
+          ? utf8.encode(_inputController.text)
+          : base64.decode(_inputController.text.trim());
       final key = _generateKey();
       final iv = _generateIV();
-      
+
       List<int> result;
       if (_operation == 'encrypt') {
         result = _aesEncrypt(inputData, key, iv);
         setState(() {
-          _outputController.text = 'IV: ${_bytesToHex(iv)}\n${_bytesToBase64(result)}';
+          _outputController.text =
+              'IV: ${_bytesToHex(iv)}\n${_bytesToBase64(result)}';
         });
       } else {
         result = _aesDecrypt(inputData, key, iv);
@@ -146,7 +130,10 @@ class _AesCryptoScreenState extends State<AesCryptoScreen> {
   void _copyOutput() {
     if (_outputController.text.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已复制到剪贴板'), duration: Duration(seconds: 1)),
+        const SnackBar(
+          content: Text('已复制到剪贴板'),
+          duration: Duration(seconds: 1),
+        ),
       );
     }
   }
@@ -178,14 +165,20 @@ class _AesCryptoScreenState extends State<AesCryptoScreen> {
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _operation,
+                          initialValue: _operation,
                           decoration: const InputDecoration(
                             labelText: '操作',
                             border: OutlineInputBorder(),
                           ),
                           items: const [
-                            DropdownMenuItem(value: 'encrypt', child: Text('加密')),
-                            DropdownMenuItem(value: 'decrypt', child: Text('解密')),
+                            DropdownMenuItem(
+                              value: 'encrypt',
+                              child: Text('加密'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'decrypt',
+                              child: Text('解密'),
+                            ),
                           ],
                           onChanged: (value) {
                             setState(() {
@@ -200,15 +193,24 @@ class _AesCryptoScreenState extends State<AesCryptoScreen> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _keySize,
+                          initialValue: _keySize,
                           decoration: const InputDecoration(
                             labelText: '密钥长度',
                             border: OutlineInputBorder(),
                           ),
                           items: const [
-                            DropdownMenuItem(value: '128', child: Text('AES-128')),
-                            DropdownMenuItem(value: '192', child: Text('AES-192')),
-                            DropdownMenuItem(value: '256', child: Text('AES-256')),
+                            DropdownMenuItem(
+                              value: '128',
+                              child: Text('AES-128'),
+                            ),
+                            DropdownMenuItem(
+                              value: '192',
+                              child: Text('AES-192'),
+                            ),
+                            DropdownMenuItem(
+                              value: '256',
+                              child: Text('AES-256'),
+                            ),
                           ],
                           onChanged: (value) {
                             setState(() {
@@ -224,7 +226,7 @@ class _AesCryptoScreenState extends State<AesCryptoScreen> {
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _mode,
+                          initialValue: _mode,
                           decoration: const InputDecoration(
                             labelText: '模式',
                             border: OutlineInputBorder(),
@@ -243,13 +245,16 @@ class _AesCryptoScreenState extends State<AesCryptoScreen> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _padding,
+                          initialValue: _padding,
                           decoration: const InputDecoration(
                             labelText: '填充',
                             border: OutlineInputBorder(),
                           ),
                           items: const [
-                            DropdownMenuItem(value: 'PKCS7', child: Text('PKCS7')),
+                            DropdownMenuItem(
+                              value: 'PKCS7',
+                              child: Text('PKCS7'),
+                            ),
                           ],
                           onChanged: (value) {
                             setState(() {
@@ -310,10 +315,15 @@ class _AesCryptoScreenState extends State<AesCryptoScreen> {
           Center(
             child: ElevatedButton.icon(
               onPressed: _process,
-              icon: Icon(_operation == 'encrypt' ? Icons.lock : Icons.lock_open),
+              icon: Icon(
+                _operation == 'encrypt' ? Icons.lock : Icons.lock_open,
+              ),
               label: Text(_operation == 'encrypt' ? '加密' : '解密'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 48,
+                  vertical: 16,
+                ),
               ),
             ),
           ),

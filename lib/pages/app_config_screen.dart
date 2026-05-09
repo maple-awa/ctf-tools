@@ -49,7 +49,6 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
               ],
             ),
           ),
-          ),
         );
       },
     );
@@ -83,7 +82,10 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
                   icon: const Icon(Icons.list),
                   label: const Text('选择系统字体'),
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                   ),
                 ),
               ],
@@ -236,9 +238,7 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
               contentPadding: EdgeInsets.zero,
               title: const Text('紧凑模式'),
               subtitle: Text(
-                provider.layout.compactMode 
-                    ? '使用更小的间距和侧边栏' 
-                    : '使用标准间距和侧边栏',
+                provider.layout.compactMode ? '使用更小的间距和侧边栏' : '使用标准间距和侧边栏',
               ),
               value: provider.layout.compactMode,
               onChanged: (_) => provider.toggleCompactMode(),
@@ -261,12 +261,14 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
                         divisions: 28,
                         label: '${provider.layout.sidebarWidth.toInt()}px',
                         onChanged: (value) {
-                          provider.setLayout(LayoutConfig(
-                            sidebarWidth: value,
-                            compactMode: provider.layout.compactMode,
-                            cardRadius: provider.layout.cardRadius,
-                            contentPadding: provider.layout.contentPadding,
-                          ));
+                          provider.setLayout(
+                            LayoutConfig(
+                              sidebarWidth: value,
+                              compactMode: provider.layout.compactMode,
+                              cardRadius: provider.layout.cardRadius,
+                              contentPadding: provider.layout.contentPadding,
+                            ),
+                          );
                         },
                       ),
                     ],
@@ -292,12 +294,14 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
                         divisions: 24,
                         label: '${provider.layout.cardRadius.toInt()}px',
                         onChanged: (value) {
-                          provider.setLayout(LayoutConfig(
-                            sidebarWidth: provider.layout.sidebarWidth,
-                            compactMode: provider.layout.compactMode,
-                            cardRadius: value,
-                            contentPadding: provider.layout.contentPadding,
-                          ));
+                          provider.setLayout(
+                            LayoutConfig(
+                              sidebarWidth: provider.layout.sidebarWidth,
+                              compactMode: provider.layout.compactMode,
+                              cardRadius: value,
+                              contentPadding: provider.layout.contentPadding,
+                            ),
+                          );
                         },
                       ),
                     ],
@@ -337,14 +341,16 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
               subtitle: const Text('长文本自动换行显示'),
               value: provider.editor.wordWrap,
               onChanged: (value) {
-                provider.setEditor(EditorConfig(
-                  fontSize: provider.editor.fontSize,
-                  wordWrap: value,
-                  lineNumbers: provider.editor.lineNumbers,
-                  minimap: provider.editor.minimap,
-                  tabSize: provider.editor.tabSize,
-                  theme: provider.editor.theme,
-                ));
+                provider.setEditor(
+                  EditorConfig(
+                    fontSize: provider.editor.fontSize,
+                    wordWrap: value,
+                    lineNumbers: provider.editor.lineNumbers,
+                    minimap: provider.editor.minimap,
+                    tabSize: provider.editor.tabSize,
+                    theme: provider.editor.theme,
+                  ),
+                );
               },
             ),
             SwitchListTile(
@@ -353,14 +359,16 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
               subtitle: const Text('在代码编辑器中显示行号'),
               value: provider.editor.lineNumbers,
               onChanged: (value) {
-                provider.setEditor(EditorConfig(
-                  fontSize: provider.editor.fontSize,
-                  wordWrap: provider.editor.wordWrap,
-                  lineNumbers: value,
-                  minimap: provider.editor.minimap,
-                  tabSize: provider.editor.tabSize,
-                  theme: provider.editor.theme,
-                ));
+                provider.setEditor(
+                  EditorConfig(
+                    fontSize: provider.editor.fontSize,
+                    wordWrap: provider.editor.wordWrap,
+                    lineNumbers: value,
+                    minimap: provider.editor.minimap,
+                    tabSize: provider.editor.tabSize,
+                    theme: provider.editor.theme,
+                  ),
+                );
               },
             ),
             SwitchListTile(
@@ -369,14 +377,16 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
               subtitle: const Text('显示代码缩略图预览'),
               value: provider.editor.minimap,
               onChanged: (value) {
-                provider.setEditor(EditorConfig(
-                  fontSize: provider.editor.fontSize,
-                  wordWrap: provider.editor.wordWrap,
-                  lineNumbers: provider.editor.lineNumbers,
-                  minimap: value,
-                  tabSize: provider.editor.tabSize,
-                  theme: provider.editor.theme,
-                ));
+                provider.setEditor(
+                  EditorConfig(
+                    fontSize: provider.editor.fontSize,
+                    wordWrap: provider.editor.wordWrap,
+                    lineNumbers: provider.editor.lineNumbers,
+                    minimap: value,
+                    tabSize: provider.editor.tabSize,
+                    theme: provider.editor.theme,
+                  ),
+                );
               },
             ),
             const SizedBox(height: 16),
@@ -397,14 +407,16 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
                         divisions: 14,
                         label: '${provider.editor.fontSize}px',
                         onChanged: (value) {
-                          provider.setEditor(EditorConfig(
-                            fontSize: value.toInt(),
-                            wordWrap: provider.editor.wordWrap,
-                            lineNumbers: provider.editor.lineNumbers,
-                            minimap: provider.editor.minimap,
-                            tabSize: provider.editor.tabSize,
-                            theme: provider.editor.theme,
-                          ));
+                          provider.setEditor(
+                            EditorConfig(
+                              fontSize: value.toInt(),
+                              wordWrap: provider.editor.wordWrap,
+                              lineNumbers: provider.editor.lineNumbers,
+                              minimap: provider.editor.minimap,
+                              tabSize: provider.editor.tabSize,
+                              theme: provider.editor.theme,
+                            ),
+                          );
                         },
                       ),
                     ],
@@ -426,14 +438,16 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
                         divisions: 6,
                         label: '${provider.editor.tabSize} 空格',
                         onChanged: (value) {
-                          provider.setEditor(EditorConfig(
-                            fontSize: provider.editor.fontSize,
-                            wordWrap: provider.editor.wordWrap,
-                            lineNumbers: provider.editor.lineNumbers,
-                            minimap: provider.editor.minimap,
-                            tabSize: value.toInt(),
-                            theme: provider.editor.theme,
-                          ));
+                          provider.setEditor(
+                            EditorConfig(
+                              fontSize: provider.editor.fontSize,
+                              wordWrap: provider.editor.wordWrap,
+                              lineNumbers: provider.editor.lineNumbers,
+                              minimap: provider.editor.minimap,
+                              tabSize: value.toInt(),
+                              theme: provider.editor.theme,
+                            ),
+                          );
                         },
                       ),
                     ],
@@ -473,12 +487,14 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
               subtitle: const Text('操作完成后自动复制到剪贴板'),
               value: provider.toolPrefs.autoCopyResult,
               onChanged: (value) {
-                provider.setToolPrefs(ToolPreferences(
-                  autoCopyResult: value,
-                  confirmClear: provider.toolPrefs.confirmClear,
-                  maxHistoryItems: provider.toolPrefs.maxHistoryItems,
-                  showTooltips: provider.toolPrefs.showTooltips,
-                ));
+                provider.setToolPrefs(
+                  ToolPreferences(
+                    autoCopyResult: value,
+                    confirmClear: provider.toolPrefs.confirmClear,
+                    maxHistoryItems: provider.toolPrefs.maxHistoryItems,
+                    showTooltips: provider.toolPrefs.showTooltips,
+                  ),
+                );
               },
             ),
             SwitchListTile(
@@ -487,12 +503,14 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
               subtitle: const Text('清空输入输出前弹出确认对话框'),
               value: provider.toolPrefs.confirmClear,
               onChanged: (value) {
-                provider.setToolPrefs(ToolPreferences(
-                  autoCopyResult: provider.toolPrefs.autoCopyResult,
-                  confirmClear: value,
-                  maxHistoryItems: provider.toolPrefs.maxHistoryItems,
-                  showTooltips: provider.toolPrefs.showTooltips,
-                ));
+                provider.setToolPrefs(
+                  ToolPreferences(
+                    autoCopyResult: provider.toolPrefs.autoCopyResult,
+                    confirmClear: value,
+                    maxHistoryItems: provider.toolPrefs.maxHistoryItems,
+                    showTooltips: provider.toolPrefs.showTooltips,
+                  ),
+                );
               },
             ),
             SwitchListTile(
@@ -501,12 +519,14 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
               subtitle: const Text('显示功能说明和提示信息'),
               value: provider.toolPrefs.showTooltips,
               onChanged: (value) {
-                provider.setToolPrefs(ToolPreferences(
-                  autoCopyResult: provider.toolPrefs.autoCopyResult,
-                  confirmClear: provider.toolPrefs.confirmClear,
-                  maxHistoryItems: provider.toolPrefs.maxHistoryItems,
-                  showTooltips: value,
-                ));
+                provider.setToolPrefs(
+                  ToolPreferences(
+                    autoCopyResult: provider.toolPrefs.autoCopyResult,
+                    confirmClear: provider.toolPrefs.confirmClear,
+                    maxHistoryItems: provider.toolPrefs.maxHistoryItems,
+                    showTooltips: value,
+                  ),
+                );
               },
             ),
             const SizedBox(height: 16),
@@ -527,12 +547,14 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
                         divisions: 19,
                         label: provider.toolPrefs.maxHistoryItems.toString(),
                         onChanged: (value) {
-                          provider.setToolPrefs(ToolPreferences(
-                            autoCopyResult: provider.toolPrefs.autoCopyResult,
-                            confirmClear: provider.toolPrefs.confirmClear,
-                            maxHistoryItems: value.toInt(),
-                            showTooltips: provider.toolPrefs.showTooltips,
-                          ));
+                          provider.setToolPrefs(
+                            ToolPreferences(
+                              autoCopyResult: provider.toolPrefs.autoCopyResult,
+                              confirmClear: provider.toolPrefs.confirmClear,
+                              maxHistoryItems: value.toInt(),
+                              showTooltips: provider.toolPrefs.showTooltips,
+                            ),
+                          );
                         },
                       ),
                     ],
@@ -574,10 +596,7 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
               onChanged: provider.setAutoSave,
             ),
             const SizedBox(height: 16),
-            const Text(
-              '导出路径',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            const Text('导出路径', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             TextField(
               decoration: InputDecoration(
@@ -637,7 +656,7 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
         const SizedBox(width: 16),
         ElevatedButton.icon(
           onPressed: () async {
-            final result = await provider.saveConfig();
+            await provider.saveConfig();
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(

@@ -6,31 +6,34 @@ class QuotedPrintableCodecScreen extends StatefulWidget {
   const QuotedPrintableCodecScreen({super.key});
 
   @override
-  State<QuotedPrintableCodecScreen> createState() => _QuotedPrintableCodecScreenState();
+  State<QuotedPrintableCodecScreen> createState() =>
+      _QuotedPrintableCodecScreenState();
 }
 
-class _QuotedPrintableCodecScreenState extends State<QuotedPrintableCodecScreen> {
+class _QuotedPrintableCodecScreenState
+    extends State<QuotedPrintableCodecScreen> {
   final TextEditingController _inputController = TextEditingController();
   final TextEditingController _outputController = TextEditingController();
-  String _charset = 'utf-8';
-
   String _encodeQuotedPrintable(String input) {
     final bytes = utf8.encode(input);
     final buffer = StringBuffer();
-    
+
     for (var byte in bytes) {
       // 可打印 ASCII 字符（除了 =）
       if (byte >= 33 && byte <= 60 || byte >= 62 && byte <= 126) {
         buffer.write(String.fromCharCode(byte));
-      } else if (byte == 32 || byte == 9) { // 空格或制表符
+      } else if (byte == 32 || byte == 9) {
+        // 空格或制表符
         // 行尾的空格需要编码
         buffer.write(String.fromCharCode(byte));
       } else {
         // 其他字符编码为 =XX
-        buffer.write('=${byte.toRadixString(16).toUpperCase().padLeft(2, '0')}');
+        buffer.write(
+          '=${byte.toRadixString(16).toUpperCase().padLeft(2, '0')}',
+        );
       }
     }
-    
+
     return buffer.toString();
   }
 
@@ -38,12 +41,12 @@ class _QuotedPrintableCodecScreenState extends State<QuotedPrintableCodecScreen>
     try {
       // 移除软换行（= 后跟换行符）
       String normalized = input.replaceAll('=\n', '').replaceAll('=\r\n', '');
-      
+
       // 解码 =XX 格式
       final bytes = <int>[];
       final regex = RegExp(r'=([0-9A-Fa-f]{2})');
       int pos = 0;
-      
+
       while (pos < normalized.length) {
         if (normalized[pos] == '=') {
           final match = regex.firstMatch(normalized.substring(pos));
@@ -59,7 +62,7 @@ class _QuotedPrintableCodecScreenState extends State<QuotedPrintableCodecScreen>
           pos++;
         }
       }
-      
+
       return utf8.decode(bytes, allowMalformed: true);
     } catch (e) {
       return '解码失败：${e.toString()}';
@@ -98,7 +101,10 @@ class _QuotedPrintableCodecScreenState extends State<QuotedPrintableCodecScreen>
   void _copyOutput() {
     if (_outputController.text.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已复制到剪贴板'), duration: Duration(seconds: 1)),
+        const SnackBar(
+          content: Text('已复制到剪贴板'),
+          duration: Duration(seconds: 1),
+        ),
       );
     }
   }
@@ -147,11 +153,7 @@ class _QuotedPrintableCodecScreenState extends State<QuotedPrintableCodecScreen>
             ),
           ),
           const SizedBox(height: 16),
-          CodeEditor(
-            controller: _inputController,
-            label: '输入',
-            height: 200,
-          ),
+          CodeEditor(controller: _inputController, label: '输入', height: 200),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -161,7 +163,10 @@ class _QuotedPrintableCodecScreenState extends State<QuotedPrintableCodecScreen>
                 icon: const Icon(Icons.lock),
                 label: const Text('编码'),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -170,7 +175,10 @@ class _QuotedPrintableCodecScreenState extends State<QuotedPrintableCodecScreen>
                 icon: const Icon(Icons.lock_open),
                 label: const Text('解码'),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
                 ),
               ),
             ],

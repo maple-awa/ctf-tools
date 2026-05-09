@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ctf_tools/shared/widgets/code_editor.dart';
 import 'dart:convert';
-import 'dart:crypto';
 import 'package:crypto/crypto.dart' as crypto_lib;
 
 class JWTAnalyzerScreen extends StatefulWidget {
@@ -25,7 +24,7 @@ class _JWTAnalyzerScreenState extends State<JWTAnalyzerScreen> {
     try {
       final token = _jwtController.text.trim();
       final parts = token.split('.');
-      
+
       if (parts.length != 3) {
         setState(() {
           _outputController.text = '无效的 JWT 格式：应该包含 3 个部分';
@@ -55,22 +54,26 @@ class _JWTAnalyzerScreenState extends State<JWTAnalyzerScreen> {
       final buffer = StringBuffer();
       buffer.writeln('=== JWT 解码结果 ===\n');
       buffer.writeln('【Header】');
-      buffer.writeln(const JsonEncoder.withIndent('  ').convert(_decodedHeader));
+      buffer.writeln(
+        const JsonEncoder.withIndent('  ').convert(_decodedHeader),
+      );
       buffer.writeln('\n【Payload】');
-      buffer.writeln(const JsonEncoder.withIndent('  ').convert(_decodedPayload));
+      buffer.writeln(
+        const JsonEncoder.withIndent('  ').convert(_decodedPayload),
+      );
       buffer.writeln('\n【Signature】');
       buffer.writeln(_signature);
-      
+
       buffer.writeln('\n=== 分析 ===');
       final alg = _decodedHeader?['alg'];
       final typ = _decodedHeader?['typ'];
       buffer.writeln('算法：$alg');
       buffer.writeln('类型：$typ');
-      
+
       if (alg == 'none' || alg == 'None' || alg == 'NONE') {
         buffer.writeln('\n⚠️ 警告：使用 none 算法，可能存在安全漏洞！');
       }
-      
+
       if (_decodedPayload != null) {
         final exp = _decodedPayload?['exp'];
         if (exp != null) {
@@ -95,28 +98,35 @@ class _JWTAnalyzerScreenState extends State<JWTAnalyzerScreen> {
     try {
       final secret = _secretController.text;
       var header = _decodedHeader ?? {'alg': 'HS256', 'typ': 'JWT'};
-      var payload = _decodedPayload ?? {'sub': '1234567890', 'name': 'John Doe', 'iat': 1516239022};
-      
+      var payload =
+          _decodedPayload ??
+          {'sub': '1234567890', 'name': 'John Doe', 'iat': 1516239022};
+
       header['alg'] = 'HS256';
-      
-      String base64UrlEncode(String input) {
-        return base64Url.encode(utf8.encode(input)).replaceAll('=', '');
+
+      String base64UrlEncodeBytes(List<int> input) {
+        return base64Url.encode(input).replaceAll('=', '');
       }
 
-      final headerEncoded = base64UrlEncode(jsonEncode(header));
-      final payloadEncoded = base64UrlEncode(jsonEncode(payload));
-      
+      final headerEncoded = base64UrlEncodeBytes(
+        utf8.encode(jsonEncode(header)),
+      );
+      final payloadEncoded = base64UrlEncodeBytes(
+        utf8.encode(jsonEncode(payload)),
+      );
+
       final signingInput = '$headerEncoded.$payloadEncoded';
-      
+
       final key = utf8.encode(secret.isEmpty ? 'secret' : secret);
       final hmac = crypto_lib.Hmac(crypto_lib.sha256, key);
       final digest = hmac.convert(utf8.encode(signingInput));
-      final signature = base64UrlEncode(digest.bytes);
+      final signature = base64UrlEncodeBytes(digest.bytes);
 
       final forgedToken = '$headerEncoded.$payloadEncoded.$signature';
 
       setState(() {
-        _outputController.text = '=== 伪造的 JWT ===\n\n$forgedToken\n\n=== Payload ===\n${const JsonEncoder.withIndent('  ').convert(payload)}';
+        _outputController.text =
+            '=== 伪造的 JWT ===\n\n$forgedToken\n\n=== Payload ===\n${const JsonEncoder.withIndent('  ').convert(payload)}';
       });
     } catch (e) {
       setState(() {
@@ -147,7 +157,10 @@ class _JWTAnalyzerScreenState extends State<JWTAnalyzerScreen> {
   void _copyOutput() {
     if (_outputController.text.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已复制到剪贴板'), duration: Duration(seconds: 1)),
+        const SnackBar(
+          content: Text('已复制到剪贴板'),
+          duration: Duration(seconds: 1),
+        ),
       );
     }
   }
@@ -179,14 +192,20 @@ class _JWTAnalyzerScreenState extends State<JWTAnalyzerScreen> {
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _operation,
+                          initialValue: _operation,
                           decoration: const InputDecoration(
                             labelText: '操作',
                             border: OutlineInputBorder(),
                           ),
                           items: const [
-                            DropdownMenuItem(value: 'decode', child: Text('解码/分析')),
-                            DropdownMenuItem(value: 'forge', child: Text('伪造 Token')),
+                            DropdownMenuItem(
+                              value: 'decode',
+                              child: Text('解码/分析'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'forge',
+                              child: Text('伪造 Token'),
+                            ),
                           ],
                           onChanged: (value) {
                             setState(() {
@@ -242,7 +261,10 @@ class _JWTAnalyzerScreenState extends State<JWTAnalyzerScreen> {
               icon: Icon(_operation == 'decode' ? Icons.search : Icons.edit),
               label: Text(_operation == 'decode' ? '解码' : '伪造'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 48,
+                  vertical: 16,
+                ),
               ),
             ),
           ),

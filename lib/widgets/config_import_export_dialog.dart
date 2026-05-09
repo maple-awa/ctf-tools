@@ -8,7 +8,8 @@ class ConfigImportExportDialog extends StatefulWidget {
   const ConfigImportExportDialog({super.key});
 
   @override
-  State<ConfigImportExportDialog> createState() => _ConfigImportExportDialogState();
+  State<ConfigImportExportDialog> createState() =>
+      _ConfigImportExportDialogState();
 }
 
 class _ConfigImportExportDialogState extends State<ConfigImportExportDialog> {
@@ -38,7 +39,7 @@ class _ConfigImportExportDialogState extends State<ConfigImportExportDialog> {
               if (!_showImport) ...[
                 Card(
                   child: ListTile(
-                    leading: Icon(Icons.export, color: scheme.primary),
+                    leading: Icon(Icons.file_upload, color: scheme.primary),
                     title: const Text('导出配置'),
                     subtitle: Text(
                       '将当前配置导出为 JSON 字符串',
@@ -94,7 +95,11 @@ class _ConfigImportExportDialogState extends State<ConfigImportExportDialog> {
                         ),
                         const SizedBox(height: 8),
                         _buildInfoRow('字体', configProvider.font.name, scheme),
-                        _buildInfoRow('字号', configProvider.font.baseSize.toStringAsFixed(1), scheme),
+                        _buildInfoRow(
+                          '字号',
+                          configProvider.font.baseSize.toStringAsFixed(1),
+                          scheme,
+                        ),
                         _buildInfoRow(
                           '布局',
                           configProvider.layout.compactMode ? '紧凑' : '标准',
@@ -196,10 +201,7 @@ class _ConfigImportExportDialogState extends State<ConfigImportExportDialog> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(color: scheme.onSurfaceVariant),
-          ),
+          Text(label, style: TextStyle(color: scheme.onSurfaceVariant)),
           Text(
             value,
             style: TextStyle(

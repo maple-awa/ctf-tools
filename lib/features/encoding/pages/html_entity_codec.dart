@@ -35,10 +35,10 @@ class _HtmlEntityCodecScreenState extends State<HtmlEntityCodecScreen> {
     '—': '&mdash;',
     '–': '&ndash;',
     '…': '&hellip;',
-    '"': '&ldquo;',
-    '"': '&rdquo;',
-    ''': '&lsquo;',
-    ''': '&rsquo;',
+    '“': '&ldquo;',
+    '”': '&rdquo;',
+    '‘': '&lsquo;',
+    '’': '&rsquo;',
   };
 
   void _encode() {
@@ -55,7 +55,9 @@ class _HtmlEntityCodecScreenState extends State<HtmlEntityCodecScreen> {
         encoded = input.codeUnits.map((c) => '&#$c;').join();
         break;
       case 'hexadecimal':
-        encoded = input.codeUnits.map((c) => '&#x${c.toRadixString(16).toUpperCase()};').join();
+        encoded = input.codeUnits
+            .map((c) => '&#x${c.toRadixString(16).toUpperCase()};')
+            .join();
         break;
     }
 
@@ -107,7 +109,10 @@ class _HtmlEntityCodecScreenState extends State<HtmlEntityCodecScreen> {
   void _copyOutput() {
     if (_outputController.text.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已复制到剪贴板'), duration: Duration(seconds: 1)),
+        const SnackBar(
+          content: Text('已复制到剪贴板'),
+          duration: Duration(seconds: 1),
+        ),
       );
     }
   }
@@ -136,15 +141,24 @@ class _HtmlEntityCodecScreenState extends State<HtmlEntityCodecScreen> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: _entityType,
+                    initialValue: _entityType,
                     decoration: const InputDecoration(
                       labelText: '实体类型',
                       border: OutlineInputBorder(),
                     ),
                     items: const [
-                      DropdownMenuItem(value: 'named', child: Text('命名实体 (&lt; &gt; &amp;)')),
-                      DropdownMenuItem(value: 'decimal', child: Text('十进制 (&#60; &#62; &#38;)')),
-                      DropdownMenuItem(value: 'hexadecimal', child: Text('十六进制 (&#x3C; &#x3E; &#x26;)')),
+                      DropdownMenuItem(
+                        value: 'named',
+                        child: Text('命名实体 (&lt; &gt; &amp;)'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'decimal',
+                        child: Text('十进制 (&#60; &#62; &#38;)'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'hexadecimal',
+                        child: Text('十六进制 (&#x3C; &#x3E; &#x26;)'),
+                      ),
                     ],
                     onChanged: (value) {
                       setState(() {
@@ -174,11 +188,7 @@ class _HtmlEntityCodecScreenState extends State<HtmlEntityCodecScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          CodeEditor(
-            controller: _inputController,
-            label: '输入',
-            height: 200,
-          ),
+          CodeEditor(controller: _inputController, label: '输入', height: 200),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -188,7 +198,10 @@ class _HtmlEntityCodecScreenState extends State<HtmlEntityCodecScreen> {
                 icon: const Icon(Icons.lock),
                 label: const Text('编码'),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -197,7 +210,10 @@ class _HtmlEntityCodecScreenState extends State<HtmlEntityCodecScreen> {
                 icon: const Icon(Icons.lock_open),
                 label: const Text('解码'),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
                 ),
               ),
             ],

@@ -21,10 +21,8 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
     buildNumber: 'Unknown',
     buildSignature: '',
   );
-  bool _isLoading = true;
   bool _isCheckingUpdate = false;
   bool _hasUpdate = false;
-  String? _latestVersion;
   String? _updateMessage;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -38,16 +36,10 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
       duration: const Duration(milliseconds: 1200),
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.elasticOut,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
     );
     _animationController.forward();
     _loadPackageInfo();
@@ -58,12 +50,9 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
       final info = await PackageInfo.fromPlatform();
       setState(() {
         _packageInfo = info;
-        _isLoading = false;
       });
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      // Keep fallback package information.
     }
   }
 
@@ -79,7 +68,6 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
     setState(() {
       _isCheckingUpdate = false;
       _hasUpdate = false; // 模拟没有更新
-      _latestVersion = _packageInfo.version;
       _updateMessage = '已经是最新版本';
     });
 
@@ -106,9 +94,9 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('无法打开链接')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('无法打开链接')));
       }
     }
   }
@@ -140,15 +128,15 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              scheme.primaryContainer.withOpacity(0.3),
+              scheme.primaryContainer.withValues(alpha: 0.3),
               scheme.surface,
-              scheme.tertiaryContainer.withOpacity(0.2),
+              scheme.tertiaryContainer.withValues(alpha: 0.2),
             ],
           ),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -204,8 +192,8 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            scheme.primary.withOpacity(0.8),
-            scheme.tertiary.withOpacity(0.6),
+            scheme.primary.withValues(alpha: 0.8),
+            scheme.tertiary.withValues(alpha: 0.6),
           ],
         ),
         borderRadius: const BorderRadius.only(
@@ -213,57 +201,62 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
           topRight: Radius.circular(24),
         ),
       ),
-      child: FadeTransition(
-        opacity: _fadeAnimation,
-        scaleAnimation: _scaleAnimation,
-        child: Column(
-          children: [
-            // Logo/图标
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.shield_outlined,
-                size: 48,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _packageInfo.appName,
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                'CTF 工具箱',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white.withOpacity(0.9),
-                  fontWeight: FontWeight.w500,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Column(
+            children: [
+              // Logo/图标
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.shield_outlined,
+                  size: 48,
+                  color: Colors.white,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                _packageInfo.appName,
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'CTF 工具箱',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -275,10 +268,7 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
       builder: (context, child) {
         return Transform.scale(
           scale: _animationController.value,
-          child: Opacity(
-            opacity: _animationController.value,
-            child: child,
-          ),
+          child: Opacity(opacity: _animationController.value, child: child),
         );
       },
       child: Card(
@@ -320,8 +310,7 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
                 _packageInfo.version,
                 scheme,
                 Icons.new_releases,
-                onCopy: () =>
-                    _copyToClipboard(_packageInfo.version, '版本号'),
+                onCopy: () => _copyToClipboard(_packageInfo.version, '版本号'),
               ),
               _buildDivider,
               _buildInfoRow(
@@ -329,17 +318,15 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
                 _packageInfo.buildNumber,
                 scheme,
                 Icons.build,
-                onCopy: () =>
-                    _copyToClipboard(_packageInfo.buildNumber, '构建号'),
+                onCopy: () => _copyToClipboard(_packageInfo.buildNumber, '构建号'),
               ),
               _buildDivider,
               _buildInfoRow(
                 '包名',
                 _packageInfo.packageName,
                 scheme,
-                Icons.package,
-                onCopy: () =>
-                    _copyToClipboard(_packageInfo.packageName, '包名'),
+                Icons.inventory_2_outlined,
+                onCopy: () => _copyToClipboard(_packageInfo.packageName, '包名'),
               ),
             ],
           ),
@@ -351,7 +338,7 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
   Widget _buildProjectLinksCard(ColorScheme scheme) {
     return Card(
       elevation: 0,
-      color: scheme.primaryContainer.withOpacity(0.3),
+      color: scheme.primaryContainer.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: scheme.primaryContainer),
@@ -421,7 +408,7 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: scheme.surface.withOpacity(0.5),
+          color: scheme.surface.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: scheme.outlineVariant),
         ),
@@ -468,7 +455,7 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
   Widget _buildFeaturesCard(ColorScheme scheme) {
     return Card(
       elevation: 0,
-      color: scheme.tertiaryContainer.withOpacity(0.3),
+      color: scheme.tertiaryContainer.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: scheme.tertiaryContainer),
@@ -513,15 +500,11 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
     );
   }
 
-  Widget _buildFeatureChip(
-    String label,
-    IconData icon,
-    ColorScheme scheme,
-  ) {
+  Widget _buildFeatureChip(String label, IconData icon, ColorScheme scheme) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: scheme.surface.withOpacity(0.7),
+        color: scheme.surface.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: scheme.outlineVariant),
       ),
@@ -546,7 +529,7 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
   Widget _buildTechStackCard(ColorScheme scheme) {
     return Card(
       elevation: 0,
-      color: scheme.secondaryContainer.withOpacity(0.3),
+      color: scheme.secondaryContainer.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: scheme.secondaryContainer),
@@ -628,7 +611,7 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
     return Card(
       elevation: 0,
       color: _hasUpdate
-          ? scheme.primaryContainer.withOpacity(0.5)
+          ? scheme.primaryContainer.withValues(alpha: 0.5)
           : scheme.surfaceContainerHighest,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -681,7 +664,9 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
                       _hasUpdate
                           ? Icons.new_releases
                           : Icons.check_circle_outline,
-                      color: _hasUpdate ? scheme.primary : scheme.onSurfaceVariant,
+                      color: _hasUpdate
+                          ? scheme.primary
+                          : scheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -713,7 +698,8 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
                       ElevatedButton(
                         onPressed: () {
                           _launchUrl(
-                              'https://github.com/mapale-dev/ctf-tools/releases');
+                            'https://github.com/mapale-dev/ctf-tools/releases',
+                          );
                         },
                         child: const Text('更新'),
                       ),
@@ -751,9 +737,7 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: scheme.outlineVariant),
-        ),
+        border: Border(top: BorderSide(color: scheme.outlineVariant)),
       ),
       child: Column(
         children: [
@@ -770,7 +754,7 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
             '© 2024-${DateTime.now().year} CTF Tools. All rights reserved.',
             style: TextStyle(
               fontSize: 11,
-              color: scheme.onSurfaceVariant.withOpacity(0.7),
+              color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 8),
@@ -781,10 +765,17 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
                 onTap: () => _launchUrl('https://github.com/mapale-dev'),
                 borderRadius: BorderRadius.circular(16),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   child: Row(
                     children: [
-                      Icon(Icons.code, size: 12, color: scheme.onSurfaceVariant),
+                      Icon(
+                        Icons.code,
+                        size: 12,
+                        color: scheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         'Open Source',
@@ -805,13 +796,21 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
               ),
               InkWell(
                 onTap: () => _launchUrl(
-                    'https://github.com/mapale-dev/ctf-tools/blob/main/LICENSE'),
+                  'https://github.com/mapale-dev/ctf-tools/blob/main/LICENSE',
+                ),
                 borderRadius: BorderRadius.circular(16),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   child: Row(
                     children: [
-                      Icon(Icons.gavel, size: 12, color: scheme.onSurfaceVariant),
+                      Icon(
+                        Icons.gavel,
+                        size: 12,
+                        color: scheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         'MIT License',
@@ -832,10 +831,10 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
   }
 
   Widget get _buildDivider => Divider(
-        height: 1,
-        thickness: 1,
-        color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5),
-      );
+    height: 1,
+    thickness: 1,
+    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+  );
 
   Widget _buildInfoRow(
     String label,
@@ -879,7 +878,7 @@ class _AboutDialogEnhancedState extends State<AboutDialogEnhanced>
               Icon(
                 Icons.copy,
                 size: 16,
-                color: scheme.onSurfaceVariant.withOpacity(0.5),
+                color: scheme.onSurfaceVariant.withValues(alpha: 0.5),
               ),
           ],
         ),

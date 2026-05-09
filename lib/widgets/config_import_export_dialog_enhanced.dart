@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:ctf_tools/shared/providers/config/config_provider.dart';
 import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 
 /// 增强版配置导入导出对话框
 class ConfigImportExportDialogEnhanced extends StatefulWidget {
@@ -51,14 +52,16 @@ class _ConfigImportExportDialogEnhancedState
                   Text(
                     '配置管理',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const Spacer(),
                   if (configProvider.hasUnsavedChanges)
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.orange,
                         borderRadius: BorderRadius.circular(12),
@@ -70,10 +73,7 @@ class _ConfigImportExportDialogEnhancedState
                           const SizedBox(width: 4),
                           Text(
                             '未保存',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                            ),
+                            style: TextStyle(color: Colors.white, fontSize: 12),
                           ),
                         ],
                       ),
@@ -120,7 +120,9 @@ class _ConfigImportExportDialogEnhancedState
   }
 
   Widget _buildExportSection(
-      ConfigProvider configProvider, ColorScheme scheme) {
+    ConfigProvider configProvider,
+    ColorScheme scheme,
+  ) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -129,13 +131,13 @@ class _ConfigImportExportDialogEnhancedState
           children: [
             Row(
               children: [
-                Icon(Icons.export, color: scheme.primary),
+                Icon(Icons.file_upload, color: scheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   '导出配置',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -220,7 +222,8 @@ class _ConfigImportExportDialogEnhancedState
                       : () async {
                           setState(() => _isExporting = true);
                           await Future.delayed(
-                              const Duration(milliseconds: 100));
+                            const Duration(milliseconds: 100),
+                          );
 
                           String json;
                           switch (_exportMode) {
@@ -229,25 +232,25 @@ class _ConfigImportExportDialogEnhancedState
                               break;
                             case 'pretty':
                               json = configProvider.exportConfig(
-                                  prettyPrint: true);
+                                prettyPrint: true,
+                              );
                               break;
                             default:
                               json = configProvider.exportConfig(
-                                  prettyPrint: false);
+                                prettyPrint: false,
+                              );
                           }
 
                           try {
-                            FilePickerResult? result =
-                                await FilePicker.platform.saveFile(
+                            final path = await FilePicker.platform.saveFile(
                               dialogTitle: '保存配置',
-                              fileName: 'ctf_tools_config_${DateTime.now()
-                                  .toIso8601String()
-                                  .replaceAll(':', '-')}.json',
+                              fileName:
+                                  'ctf_tools_config_${DateTime.now().toIso8601String().replaceAll(':', '-')}.json',
                               bytes: null,
                             );
 
-                            if (result != null &&
-                                result.path != null) {
+                            if (path != null) {
+                              await File(path).writeAsString(json);
                               // 保存到文件
                               // TODO: 实现文件写入
                               if (mounted) {
@@ -255,10 +258,12 @@ class _ConfigImportExportDialogEnhancedState
                                   SnackBar(
                                     content: Row(
                                       children: [
-                                        const Icon(Icons.check_circle,
-                                            color: Colors.green),
+                                        const Icon(
+                                          Icons.check_circle,
+                                          color: Colors.green,
+                                        ),
                                         const SizedBox(width: 8),
-                                        Text('已保存到：${result.path}'),
+                                        Text('已保存到：$path'),
                                       ],
                                     ),
                                   ),
@@ -271,7 +276,10 @@ class _ConfigImportExportDialogEnhancedState
                                 SnackBar(
                                   content: Row(
                                     children: [
-                                      const Icon(Icons.error, color: Colors.red),
+                                      const Icon(
+                                        Icons.error,
+                                        color: Colors.red,
+                                      ),
                                       const SizedBox(width: 8),
                                       Text('保存失败：${e.toString()}'),
                                     ],
@@ -350,7 +358,8 @@ class _ConfigImportExportDialogEnhancedState
                       ? const SizedBox(
                           width: 14,
                           height: 14,
-                          child: CircularProgressIndicator(strokeWidth: 2))
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : const Icon(Icons.verified),
                   label: const Text('验证配置'),
                 ),
@@ -358,14 +367,26 @@ class _ConfigImportExportDialogEnhancedState
             ),
             const SizedBox(height: 8),
             _buildInfoRow('字体', configProvider.font.name, scheme),
-            _buildInfoRow('字号', configProvider.font.baseSize.toStringAsFixed(1),
-                scheme),
             _buildInfoRow(
-                '布局', configProvider.layout.compactMode ? '紧凑' : '标准', scheme),
+              '字号',
+              configProvider.font.baseSize.toStringAsFixed(1),
+              scheme,
+            ),
             _buildInfoRow(
-                '自动保存', configProvider.config.autoSave ? '开启' : '关闭', scheme),
+              '布局',
+              configProvider.layout.compactMode ? '紧凑' : '标准',
+              scheme,
+            ),
             _buildInfoRow(
-                '编辑器字号', '${configProvider.editor.fontSize}px', scheme),
+              '自动保存',
+              configProvider.config.autoSave ? '开启' : '关闭',
+              scheme,
+            ),
+            _buildInfoRow(
+              '编辑器字号',
+              '${configProvider.editor.fontSize}px',
+              scheme,
+            ),
             if (_validationResult != null) ...[
               const SizedBox(height: 8),
               Container(
@@ -431,16 +452,17 @@ class _ConfigImportExportDialogEnhancedState
             OutlinedButton.icon(
               onPressed: () async {
                 try {
-                  FilePickerResult? result =
-                      await FilePicker.platform.pickFiles(
-                    type: FileType.custom,
-                    allowedExtensions: ['json'],
-                  );
+                  FilePickerResult? result = await FilePicker.platform
+                      .pickFiles(
+                        type: FileType.custom,
+                        allowedExtensions: ['json'],
+                      );
 
                   if (result != null && result.files.single.path != null) {
                     // TODO: 读取文件内容
                     setState(() {
-                      _importController.text = '[文件路径：${result.files.single.path}]';
+                      _importController.text =
+                          '[文件路径：${result.files.single.path}]';
                     });
                   }
                 } catch (e) {
@@ -475,8 +497,9 @@ class _ConfigImportExportDialogEnhancedState
                 ElevatedButton.icon(
                   onPressed: () async {
                     final configProvider = context.read<ConfigProvider>();
-                    final result =
-                        await configProvider.importConfig(_importController.text);
+                    final result = await configProvider.importConfig(
+                      _importController.text,
+                    );
 
                     if (!mounted) return;
 
@@ -487,8 +510,10 @@ class _ConfigImportExportDialogEnhancedState
                         SnackBar(
                           content: Row(
                             children: [
-                              const Icon(Icons.check_circle,
-                                  color: Colors.green),
+                              const Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                              ),
                               const SizedBox(width: 8),
                               const Text('配置导入成功'),
                             ],
@@ -545,10 +570,7 @@ class _ConfigImportExportDialogEnhancedState
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(color: scheme.onSurfaceVariant),
-          ),
+          Text(label, style: TextStyle(color: scheme.onSurfaceVariant)),
           Text(
             value,
             style: TextStyle(
@@ -561,8 +583,7 @@ class _ConfigImportExportDialogEnhancedState
     );
   }
 
-  Widget _buildBottomBar(
-      ConfigProvider configProvider, ColorScheme scheme) {
+  Widget _buildBottomBar(ConfigProvider configProvider, ColorScheme scheme) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

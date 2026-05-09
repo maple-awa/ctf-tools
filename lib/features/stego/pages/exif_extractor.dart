@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:ctf_tools/shared/widgets/code_editor.dart';
-import 'dart:io';
-import 'dart:typed_data';
 
 class ExifExtractorScreen extends StatefulWidget {
   const ExifExtractorScreen({super.key});
@@ -14,40 +12,6 @@ class _ExifExtractorScreenState extends State<ExifExtractorScreen> {
   final TextEditingController _outputController = TextEditingController();
   String? _selectedFilePath;
   Map<String, String> _exifData = {};
-
-  final Map<int, String> _tagNames = {
-    0x0100: 'ImageWidth',
-    0x0101: 'ImageHeight',
-    0x010F: 'Make',
-    0x0110: 'Model',
-    0x0112: 'Orientation',
-    0x0131: 'Software',
-    0x0132: 'DateTime',
-    0x013B: 'Artist',
-    0x013E: 'WhitePoint',
-    0x013F: 'PrimaryChromaticities',
-    0x0213: 'YCbCrPositioning',
-    0x8298: 'Copyright',
-    0x829A: 'ExposureTime',
-    0x829D: 'FNumber',
-    0x8822: 'ExposureProgram',
-    0x8824: 'SpectralSensitivity',
-    0x8827: 'ISOSpeedRatings',
-    0x8828: 'OECF',
-    0x9000: 'ExifVersion',
-    0x9003: 'DateTimeOriginal',
-    0x9004: 'DateTimeDigitized',
-    0x9286: 'UserComment',
-    0x9209: 'Flash',
-    0x920A: 'FocalLength',
-    0xA402: 'ExposureMode',
-    0xA403: 'WhiteBalance',
-    0xA406: 'SceneType',
-    0xA420: 'ImageUniqueID',
-    0xA001: 'ColorSpace',
-    0xA002: 'PixelXDimension',
-    0xA003: 'PixelYDimension',
-  };
 
   Future<void> _pickFile() async {
     // 简化的文件选择提示
@@ -88,7 +52,10 @@ class _ExifExtractorScreenState extends State<ExifExtractorScreen> {
   void _copyOutput() {
     if (_outputController.text.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已复制到剪贴板'), duration: Duration(seconds: 1)),
+        const SnackBar(
+          content: Text('已复制到剪贴板'),
+          duration: Duration(seconds: 1),
+        ),
       );
     }
   }

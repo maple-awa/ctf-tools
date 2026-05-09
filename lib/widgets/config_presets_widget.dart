@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ctf_tools/shared/providers/config/config_provider.dart';
 import 'package:ctf_tools/shared/models/app_config.dart';
@@ -31,17 +31,14 @@ class ConfigPresetsWidget extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            const Text(
-              '快速应用预设的配置方案',
-              style: TextStyle(color: Colors.grey),
-            ),
+            const Text('快速应用预设的配置方案', style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 16),
             Wrap(
               spacing: 12,
               runSpacing: 12,
               children: [
                 _PresetCard(
-                  icon: Icons.comfortable,
+                  icon: Icons.view_comfy,
                   title: '舒适阅读',
                   description: '大字体、宽间距，适合长时间阅读',
                   color: Colors.blue,
@@ -59,14 +56,16 @@ class ConfigPresetsWidget extends StatelessWidget {
                   title: '开发者',
                   description: '等宽字体、显示行号，适合代码编辑',
                   color: Colors.purple,
-                  onTap: () => _applyPreset(context, configProvider, 'developer'),
+                  onTap: () =>
+                      _applyPreset(context, configProvider, 'developer'),
                 ),
                 _PresetCard(
                   icon: Icons.accessibility,
                   title: '无障碍',
                   description: '超大字体、高对比度，易于识别',
                   color: Colors.orange,
-                  onTap: () => _applyPreset(context, configProvider, 'accessible'),
+                  onTap: () =>
+                      _applyPreset(context, configProvider, 'accessible'),
                 ),
               ],
             ),
@@ -81,69 +80,71 @@ class ConfigPresetsWidget extends StatelessWidget {
     ConfigProvider provider,
     String preset,
   ) {
+    final scheme = Theme.of(context).colorScheme;
+
     switch (preset) {
       case 'reading':
-        provider.setFont(const FontConfig(
-          name: '大号字体',
-          family: 'MapleFont',
-          baseSize: 18.0,
-        ));
-        provider.setLayout(const LayoutConfig(
-          sidebarWidth: 260.0,
-          compactMode: false,
-          cardRadius: 16.0,
-          contentPadding: 20.0,
-        ));
+        provider.setFont(
+          const FontConfig(name: '大号字体', family: 'MapleFont', baseSize: 18.0),
+        );
+        provider.setLayout(
+          const LayoutConfig(
+            sidebarWidth: 260.0,
+            compactMode: false,
+            cardRadius: 16.0,
+            contentPadding: 20.0,
+          ),
+        );
         provider.setAutoSave(true);
         break;
-        
+
       case 'compact':
-        provider.setFont(const FontConfig(
-          name: '默认',
-          family: 'MapleFont',
-          baseSize: 12.0,
-        ));
+        provider.setFont(
+          const FontConfig(name: '默认', family: 'MapleFont', baseSize: 12.0),
+        );
         provider.setLayout(LayoutConfig.compactLayout);
         provider.setAutoSave(true);
         break;
-        
+
       case 'developer':
-        provider.setFont(const FontConfig(
-          name: '等宽字体',
-          family: 'monospace',
-          baseSize: 13.0,
-        ));
-        provider.setEditor(const EditorConfig(
-          fontSize: 13,
-          wordWrap: false,
-          lineNumbers: true,
-          minimap: true,
-          tabSize: 2,
-          theme: 'default',
-        ));
+        provider.setFont(
+          const FontConfig(name: '等宽字体', family: 'monospace', baseSize: 13.0),
+        );
+        provider.setEditor(
+          const EditorConfig(
+            fontSize: 13,
+            wordWrap: false,
+            lineNumbers: true,
+            minimap: true,
+            tabSize: 2,
+            theme: 'default',
+          ),
+        );
         break;
-        
+
       case 'accessible':
-        provider.setFont(const FontConfig(
-          name: '大号字体',
-          family: 'MapleFont',
-          baseSize: 22.0,
-        ));
-        provider.setLayout(const LayoutConfig(
-          sidebarWidth: 280.0,
-          compactMode: false,
-          cardRadius: 16.0,
-          contentPadding: 24.0,
-        ));
-        provider.setToolPrefs(const ToolPreferences(
-          autoCopyResult: true,
-          confirmClear: true,
-          maxHistoryItems: 100,
-          showTooltips: true,
-        ));
+        provider.setFont(
+          const FontConfig(name: '大号字体', family: 'MapleFont', baseSize: 22.0),
+        );
+        provider.setLayout(
+          const LayoutConfig(
+            sidebarWidth: 280.0,
+            compactMode: false,
+            cardRadius: 16.0,
+            contentPadding: 24.0,
+          ),
+        );
+        provider.setToolPrefs(
+          const ToolPreferences(
+            autoCopyResult: true,
+            confirmClear: true,
+            maxHistoryItems: 100,
+            showTooltips: true,
+          ),
+        );
         break;
     }
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -190,9 +191,9 @@ class _PresetCard extends StatelessWidget {
         width: 160,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,7 +201,7 @@ class _PresetCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
+                color: color.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, color: color, size: 24),
@@ -208,18 +209,12 @@ class _PresetCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
             const SizedBox(height: 4),
             Text(
               description,
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
