@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/maple-awa/ctf-tools/compare/ctf_tools-v1.5.0...ctf_tools-v1.5.1) (2026-05-09)
+
+
+### Bug Fixes
+
+* fuck ([968f98b](https://github.com/maple-awa/ctf-tools/commit/968f98bd2384f3ec49a821db5661b7b886c11943))
+
 ## [1.5.0](https://github.com/maple-awa/ctf-tools/compare/ctf_tools-v1.4.0...ctf_tools-v1.5.0) (2026-05-09)
 
 
