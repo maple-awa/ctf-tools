@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.5.0](https://github.com/maple-awa/ctf-tools/compare/ctf_tools-v1.4.0...ctf_tools-v1.5.0) (2026-05-09)
+
+
+### Features
+
+* 新增 22 个 CTF 工具和完善配置系统 ([bda96b0](https://github.com/maple-awa/ctf-tools/commit/bda96b053f6e54f2fbdfae22acae9095c04247b1))
+* 添加 Flatpak 打包支持 ([24ccadb](https://github.com/maple-awa/ctf-tools/commit/24ccadb9a1883154449a80e8f518e5013b9caa26))
+* 添加 Flatpak 打包支持 ([9e6b35d](https://github.com/maple-awa/ctf-tools/commit/9e6b35da3c0e43922d69a1285e0893cdc968355f))
+
 ## [1.4.0](https://github.com/mapale-dev/ctf-tools/compare/ctf_tools-v1.3.0...ctf_tools-v1.4.0) (2026-03-07)
 
 
