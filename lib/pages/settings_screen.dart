@@ -1,6 +1,9 @@
 import 'package:ctf_tools/shared/providers/theme/theme_color.dart';
 import 'package:ctf_tools/shared/providers/theme/theme_provider.dart';
+import 'package:ctf_tools/shared/providers/config/config_provider.dart';
 import 'package:ctf_tools/shared/widgets/tool_page_shell.dart';
+import 'package:ctf_tools/widgets/config_import_export_dialog.dart';
+import 'package:ctf_tools/widgets/about_dialog_enhanced.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -39,8 +42,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, _) {
+    return Consumer2<ThemeProvider, ConfigProvider>(
+      builder: (context, themeProvider, configProvider, _) {
         return ToolPageShell(
           title: '设置',
           description: '统一管理主题、配色和当前应用信息，整体样式已切换到 Material 3。',
@@ -48,9 +51,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             children: [
               ToolSectionCard(
-                title: '主题模式',
+                title: '快速配置',
                 child: Column(
                   children: [
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        backgroundColor: scheme.primaryContainer,
+                        child: Icon(Icons.tune, color: scheme.onPrimaryContainer),
+                      ),
+                      title: const Text('应用配置'),
+                      subtitle: Text(
+                        '字体、布局、编辑器等本地化配置',
+                        style: TextStyle(color: scheme.onSurfaceVariant),
+                      ),
+                      trailing: Icon(Icons.arrow_forward_ios, size: 16, color: scheme.onSurfaceVariant),
+                      onTap: () {
+                        // 导航到配置页面
+                        // Navigator.pushNamed(context, '/settings/config');
+                      },
+                    ),
+                    const Divider(height: 1),
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(
@@ -64,6 +85,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       value: themeProvider.isDark,
                       onChanged: themeProvider.setDarkMode,
                     ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
                     const SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerLeft,
@@ -166,22 +191,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       subtitle: Text(
                         _version,
-                        style: TextStyle(color: scheme.onSurfaceVariant),
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Icon(
-                        Icons.palette_outlined,
-                        color: scheme.primary,
-                      ),
-                      title: Text(
-                        '设计语言',
-                        style: TextStyle(color: scheme.onSurface),
-                      ),
-                      subtitle: Text(
-                        'Material 3 / Material You',
                         style: TextStyle(color: scheme.onSurfaceVariant),
                       ),
                     ),
